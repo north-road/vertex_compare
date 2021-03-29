@@ -25,6 +25,7 @@ __copyright__ = (
 
 import logging
 from typing import List
+
 from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal, QSize
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.core import QgsProject, QgsMapLayer
@@ -208,7 +209,7 @@ class QgisInterface(QObject):
         """Get the legend."""
         return self.canvas
 
-    def iconSize(self, dockedToolbar) -> int:
+    def iconSize(self, dockedToolbar) -> int:  # pylint: disable=no-self-use
         """
         Returns the toolbar icon size.
         :param dockedToolbar: If True, the icon size
