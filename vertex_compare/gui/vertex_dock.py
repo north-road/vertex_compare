@@ -27,17 +27,20 @@ from qgis.PyQt.QtWidgets import (
 from qgis.core import (
     QgsApplication,
     QgsVectorLayer,
-    QgsFeatureRequest
+    QgsCoordinateTransform,
+    QgsProject,
+    QgsCsException
 )
 from qgis.gui import (
     QgsPanelWidget,
     QgsDockWidget,
-    QgsPanelWidgetStack
+    QgsPanelWidgetStack,
+    QgsMapCanvas
 )
 
-from vertex_compare.gui.gui_utils import GuiUtils
-from vertex_compare.core.vertex_model import VertexModel
 from vertex_compare.core.feature_model import FeatureModel
+from vertex_compare.core.vertex_model import VertexModel
+from vertex_compare.gui.gui_utils import GuiUtils
 
 WIDGET, _ = uic.loadUiType(GuiUtils.get_ui_file_path('vertex_list.ui'))
 
@@ -47,10 +50,12 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
     A table for vertex lists
     """
 
-    def __init__(self, parent: QWidget = None):
+    def __init__(self, map_canvas: QgsMapCanvas, parent: QWidget = None):
         super().__init__(parent)
 
         self.setupUi(self)
+
+        self.map_canvas = map_canvas
 
         self.vertex_model = VertexModel()
         self.table_view.setModel(self.vertex_model)
@@ -70,17 +75,21 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         self.layer: Optional[QgsVectorLayer] = None
         self.selection: List[int] = []
 
-    def set_selection(self, layer: QgsVectorLayer, selection: List[int] ):
+        self.button_zoom.clicked.connect(self._zoom_to_feature)
+
+    def set_selection(self, layer: QgsVectorLayer, selection: List[int]):
         """
         Sets the selection to show in the dock
         """
         if layer == self.layer:
-            prev_feature_id = self.feature_model.data(self.feature_model.index(self.feature_combo.currentIndex(), 0), FeatureModel.FEATURE_ID_ROLE)
+            prev_feature_id = self.feature_model.data(self.feature_model.index(self.feature_combo.currentIndex(), 0),
+                                                      FeatureModel.FEATURE_ID_ROLE)
         else:
             prev_feature_id = None
 
         self.layer = layer
-        self.layer_label.setText(self.tr('{} — {} features selected').format(layer.name(), layer.selectedFeatureCount()))
+        self.layer_label.setText(
+            self.tr('{} — {} features selected').format(layer.name(), layer.selectedFeatureCount()))
 
         self.selection = selection
         self.feature_model.set_feature_ids(layer, selection)
@@ -122,6 +131,22 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         self.settings_panel.deleteLater()
         self.settings_panel = None
 
+    def _zoom_to_feature(self):
+        """
+        Zooms to the extent of the selected feature
+        """
+        selected_index = self.feature_model.index(self.feature_combo.currentIndex(), 0)
+        if selected_index.isValid():
+            feature = self.feature_model.data(selected_index, FeatureModel.FEATURE_ROLE)
+
+            ct = QgsCoordinateTransform(self.layer.crs(), self.map_canvas.mapSettings().destinationCrs(),
+                                        QgsProject.instance())
+            try:
+                bounds = ct.transformBoundingBox(feature.geometry().boundingBox())
+                self.map_canvas.zoomToFeatureExtent(bounds)
+            except QgsCsException:
+                pass
+
 
 SETTINGS_WIDGET, _ = uic.loadUiType(GuiUtils.get_ui_file_path('settings.ui'))
 
@@ -151,7 +176,7 @@ class VertexDockWidget(QgsDockWidget):
     A dock widget container for plugin GUI components
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, map_canvas: QgsMapCanvas, parent=None):
         super().__init__(parent)
 
         self.setObjectName('VertexCompareDockWidget')
@@ -168,11 +193,11 @@ class VertexDockWidget(QgsDockWidget):
         w.setLayout(layout)
         self.setWidget(w)
 
-        self.table_widget = VertexListWidget()
+        self.table_widget = VertexListWidget(map_canvas)
         self.table_widget.setDockMode(True)
         self.stack.setMainPanel(self.table_widget)
 
-    def set_selection(self, layer: QgsVectorLayer, selection: List[int] ):
+    def set_selection(self, layer: QgsVectorLayer, selection: List[int]):
         """
         Sets the selection to show in the dock
         """

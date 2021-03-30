@@ -108,7 +108,7 @@ class VertexComparePlugin(QObject):
         """Creates application GUI widgets"""
         self.initProcessing()
 
-        self.dock = VertexDockWidget()
+        self.dock = VertexDockWidget(self.iface.mapCanvas())
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
         self.dock.setUserVisible(False)
 

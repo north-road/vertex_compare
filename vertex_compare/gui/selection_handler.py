@@ -19,6 +19,7 @@ from qgis.PyQt.QtCore import (
     QObject,
     pyqtSignal
 )
+from qgis.PyQt import sip
 
 from qgis.core import (
     QgsVectorLayer
@@ -47,7 +48,7 @@ class SelectionHandler(QObject):
         if self.layer == layer:
             return
 
-        if self.layer is not None:
+        if self.layer is not None and not sip.isdeleted(self.layer):
             self.layer.selectionChanged.disconnect(self._selection_changed)
 
         self.layer = layer
