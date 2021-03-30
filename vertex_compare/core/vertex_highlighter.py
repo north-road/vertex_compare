@@ -15,6 +15,13 @@ __revision__ = '$Format:%H$'
 
 from typing import Optional
 
+from qgis.PyQt.QtCore import (
+    QPointF,
+    Qt
+)
+from qgis.PyQt.QtGui import (
+    QColor
+)
 from qgis.core import (
     QgsFeatureRendererGenerator,
     QgsSingleSymbolRenderer,
@@ -23,7 +30,14 @@ from qgis.core import (
     QgsWkbTypes,
     QgsFillSymbol,
     QgsSymbol,
-    QgsFields
+    QgsFields,
+    QgsMarkerLineSymbolLayer,
+    QgsMarkerSymbol,
+    QgsFontMarkerSymbolLayer,
+    QgsSymbolLayer,
+    QgsProperty,
+    QgsMarkerSymbolLayer,
+    QgsSimpleMarkerSymbolLayer
 )
 
 
@@ -80,10 +94,38 @@ class VertexHighlighterRendererGenerator(QgsFeatureRendererGenerator):
 
     def createRenderer(self) -> QgsSingleSymbolRenderer:  # pylint: disable=missing-function-docstring
         selection = self.layer.selectedFeatureIds()
+
+        marker_line = QgsMarkerLineSymbolLayer()
+        marker_line.setRotateMarker(False)
+        marker_line.setPlacement(QgsMarkerLineSymbolLayer.Vertex)
+
+        vertex_marker_symbol = QgsMarkerSymbol()
+
+        simple_marker = QgsSimpleMarkerSymbolLayer(QgsSimpleMarkerSymbolLayer.Circle)
+        simple_marker.setSize(1)
+        simple_marker.setStrokeStyle(Qt.NoPen)
+        vertex_marker_symbol.changeSymbolLayer(0, simple_marker)
+
+        font_marker = QgsFontMarkerSymbolLayer()
+        font_marker.setFontFamily('Arial')
+        font_marker.setColor(QColor(255, 0, 0))
+        font_marker.setDataDefinedProperty(QgsSymbolLayer.PropertyCharacter,
+                                           QgsProperty.fromExpression('@geometry_point_num'))
+        font_marker.setHorizontalAnchorPoint(QgsMarkerSymbolLayer.Left)
+        font_marker.setVerticalAnchorPoint(QgsMarkerSymbolLayer.Bottom)
+        font_marker.setOffset(QPointF(1, -1))
+        vertex_marker_symbol.appendSymbolLayer(font_marker)
+        marker_line.setSubSymbol(vertex_marker_symbol)
+
         if self.layer_type == QgsWkbTypes.LineGeometry:
-            symbol = QgsLineSymbol.createSimple({'color': '#ffffff'})
+            symbol = QgsLineSymbol()
         else:
-            symbol = QgsFillSymbol.createSimple({'color': '#ffffff'})
+            symbol = QgsFillSymbol()
+
+        symbol.changeSymbolLayer(0, marker_line)
+
+        symbol.setClipFeaturesToExtent(False)
+
         return VertexHighlighterRenderer(symbol, selection)
 
 
