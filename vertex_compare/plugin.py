@@ -20,6 +20,7 @@ from typing import (
 )
 
 from qgis.PyQt.QtCore import (
+    Qt,
     QObject,
     QTranslator,
     QCoreApplication
@@ -43,6 +44,7 @@ from qgis.gui import (
 
 from vertex_compare.core.vertex_highlighter_manager import VertexHighlighterManager
 from vertex_compare.gui.selection_handler import SelectionHandler
+from vertex_compare.gui.vertex_dock import VertexDockWidget
 
 VERSION = '0.0.1'
 
@@ -105,6 +107,10 @@ class VertexComparePlugin(QObject):
         """Creates application GUI widgets"""
         self.initProcessing()
 
+        self.dock = VertexDockWidget()
+        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
+        self.dock.setUserVisible(False)
+
         self.toolbar = QToolBar(self.tr('Vertex Compare Toolbar'))
         self.toolbar.setObjectName('vertexCompareToolbar')
         self.iface.addToolBar(self.toolbar)
@@ -123,6 +129,11 @@ class VertexComparePlugin(QObject):
         self.actions.append(self.show_vertices_action)
         self.toolbar.addAction(self.show_vertices_action)
         self.show_vertices_action.toggled.connect(self.vertex_highlighter.set_visible)
+
+        self.show_vertices_action = QAction(self.tr('Show Vertices'), parent=self.toolbar)
+        self.toolbar.addAction(self.show_vertices_action)
+        self.actions.append(self.show_vertices_action)
+        self.dock.setToggleVisibilityAction(self.show_vertices_action)
 
         self.selection_handler.selection_changed.connect(self._selection_changed)
 
