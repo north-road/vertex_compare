@@ -40,6 +40,7 @@ from qgis.gui import (
     QgsMapLayerComboBox
 )
 
+from vertex_compare.core.vertex_highlighter import VertexHighlighterManager
 from vertex_compare.gui.selection_handler import SelectionHandler
 
 VERSION = '0.0.1'
@@ -77,6 +78,7 @@ class VertexComparePlugin(QObject):
         self.layer_combo = None
         self.actions = []
         self.dock = None
+        self.vertex_highlighter = VertexHighlighterManager()
         self.selection_handler = SelectionHandler(self)
 
     @staticmethod
@@ -110,7 +112,7 @@ class VertexComparePlugin(QObject):
         self.layer_combo.setFilters(QgsMapLayerProxyModel.PolygonLayer | QgsMapLayerProxyModel.LineLayer)
         self.layer_combo.setMinimumWidth(QFontMetrics(self.layer_combo.font()).width('x') * 40)
         self.layer_combo.setLayer(None)
-        self.layer_combo.layerChanged.connect(self.selection_handler.set_layer)
+        self.layer_combo.layerChanged.connect(self._set_layer)
         self.toolbar.addWidget(self.layer_combo)
 
         self.selection_handler.selection_changed.connect(self._selection_changed)
@@ -127,6 +129,13 @@ class VertexComparePlugin(QObject):
         if self.dock is not None:
             self.dock.deleteLater()
             self.dock = None
+
+    def _set_layer(self, layer: Optional[QgsVectorLayer]):
+        """
+        Triggered when the selected layer is changed
+        """
+        self.selection_handler.set_layer(layer)
+        self.vertex_highlighter.set_layer(layer)
 
     def _selection_changed(self, layer: Optional[QgsVectorLayer], selection: List[int]):
         """
