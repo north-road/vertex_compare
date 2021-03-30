@@ -40,7 +40,7 @@ from qgis.gui import (
     QgsMapLayerComboBox
 )
 
-from vertex_compare.core.vertex_highlighter import VertexHighlighterManager
+from vertex_compare.core.vertex_highlighter_manager import VertexHighlighterManager
 from vertex_compare.gui.selection_handler import SelectionHandler
 
 VERSION = '0.0.1'
