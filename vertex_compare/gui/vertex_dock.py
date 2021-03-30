@@ -113,6 +113,8 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         if selected_index.isValid():
             feature = self.feature_model.data(selected_index, FeatureModel.FEATURE_ROLE)
             self.vertex_model.set_feature(feature)
+
+            self.map_canvas.flashGeometries([feature.geometry()], self.layer.crs())
         else:
             self.vertex_model.set_feature(None)
 
