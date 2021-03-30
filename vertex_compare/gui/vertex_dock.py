@@ -156,6 +156,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
             try:
                 bounds = ct.transformBoundingBox(feature.geometry().boundingBox())
                 self.map_canvas.zoomToFeatureExtent(bounds)
+                self.map_canvas.flashGeometries([feature.geometry()], self.layer.crs())
             except QgsCsException:
                 pass
 
