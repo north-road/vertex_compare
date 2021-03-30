@@ -115,7 +115,7 @@ class VertexModel(QAbstractTableModel):
         if orientation == Qt.Horizontal:
             if role in (Qt.DisplayRole, Qt.ToolTipRole):
                 if section == VertexModel.COLUMN_ID:
-                    return self.tr('Row')
+                    return self.tr('Vertex')
                 if section == VertexModel.COLUMN_X:
                     return self.tr('X')
                 if section == VertexModel.COLUMN_Y:

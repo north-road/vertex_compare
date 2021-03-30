@@ -37,6 +37,7 @@ from qgis.gui import (
 
 from vertex_compare.gui.gui_utils import GuiUtils
 from vertex_compare.core.vertex_model import VertexModel
+from vertex_compare.core.feature_model import FeatureModel
 
 WIDGET, _ = uic.loadUiType(GuiUtils.get_ui_file_path('vertex_list.ui'))
 
@@ -53,6 +54,9 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
 
         self.vertex_model = VertexModel()
         self.table_view.setModel(self.vertex_model)
+
+        self.feature_model = FeatureModel()
+        self.feature_combo.setModel(self.feature_model)
 
         self.toolbar.addSeparator()
 
@@ -71,6 +75,8 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         """
         self.layer = layer
         self.selection = selection
+
+        self.feature_model.set_feature_ids(layer, selection)
 
         if selection:
             features = self.layer.getFeatures(QgsFeatureRequest().setNoAttributes().setFilterFids(selection))

@@ -13,10 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="spacing">
-    <number>0</number>
-   </property>
+  <layout class="QGridLayout" name="gridLayout" columnstretch="1,0">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -29,10 +26,27 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <item>
+   <item row="0" column="0">
     <widget class="QToolBar" name="toolbar"/>
    </item>
-   <item>
+   <item row="3" column="0">
+    <widget class="QComboBox" name="feature_combo"/>
+   </item>
+   <item row="3" column="1">
+    <widget class="QPushButton" name="button_zoom">
+     <property name="text">
+      <string>Zoom</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <widget class="QLabel" name="layer_label">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
     <widget class="QTableView" name="table_view"/>
    </item>
   </layout>
