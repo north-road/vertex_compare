@@ -36,10 +36,18 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         super().__init__(symbol)
         self.selection = selection
 
-    def filter(self, fields=QgsFields()) -> str:
+    def filter(self, _=QgsFields()) -> str:  # pylint: disable=missing-function-docstring
         return f'$id in ({",".join([str(i) for i in self.selection])})'
 
-    def renderFeature(self, feature, context, layer, selected, drawVertexMarker) -> bool:
+    def renderFeature(self,  # pylint: disable=missing-function-docstring
+                      feature,
+                      context,
+                      layer,
+                      _,
+                      drawVertexMarker) -> bool:
+        # we ignore whatever passed value is given for the "selected" argument. In fact, it's always
+        # False for secondary renderers, but even if it wasn't we still don't want to pass it on
+        # to the base class renderFeature method
         if not context.showSelection():
             return False
 
@@ -64,13 +72,13 @@ class VertexHighlighterRendererGenerator(QgsFeatureRendererGenerator):
         self.layer = layer
         self.layer_type = layer.geometryType()
 
-    def id(self):
+    def id(self):  # pylint: disable=missing-function-docstring
         return VertexHighlighterRendererGenerator.ID
 
-    def level(self) -> float:
+    def level(self) -> float:  # pylint: disable=missing-function-docstring
         return 1
 
-    def createRenderer(self) -> QgsSingleSymbolRenderer:
+    def createRenderer(self) -> QgsSingleSymbolRenderer:  # pylint: disable=missing-function-docstring
         selection = self.layer.selectedFeatureIds()
         if self.layer_type == QgsWkbTypes.LineGeometry:
             symbol = QgsLineSymbol.createSimple({'color': '#ffffff'})
