@@ -14,25 +14,38 @@ __copyright__ = 'Copyright 2021, North Road'
 __revision__ = '$Format:%H$'
 
 import os
+from typing import (
+    List,
+    Optional
+)
 
 from qgis.PyQt.QtCore import (
+    QObject,
     QTranslator,
     QCoreApplication
+)
+from qgis.PyQt.QtGui import (
+    QFontMetrics
 )
 from qgis.PyQt.QtWidgets import (
     QToolBar
 )
 from qgis.core import (
-    QgsApplication
+    QgsApplication,
+    QgsMapLayerProxyModel,
+    QgsVectorLayer
 )
 from qgis.gui import (
-    QgisInterface
+    QgisInterface,
+    QgsMapLayerComboBox
 )
+
+from vertex_compare.gui.selection_handler import SelectionHandler
 
 VERSION = '0.0.1'
 
 
-class VertexComparePlugin:
+class VertexComparePlugin(QObject):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface: QgisInterface):
@@ -61,8 +74,10 @@ class VertexComparePlugin:
             QCoreApplication.installTranslator(self.translator)
 
         self.toolbar = None
+        self.layer_combo = None
         self.actions = []
         self.dock = None
+        self.selection_handler = SelectionHandler(self)
 
     @staticmethod
     def tr(message):
@@ -90,6 +105,16 @@ class VertexComparePlugin:
         self.toolbar.setObjectName('vertexCompareToolbar')
         self.iface.addToolBar(self.toolbar)
 
+        self.layer_combo = QgsMapLayerComboBox()
+        self.layer_combo.setAllowEmptyLayer(True, self.tr('Disabled'))
+        self.layer_combo.setFilters(QgsMapLayerProxyModel.PolygonLayer | QgsMapLayerProxyModel.LineLayer)
+        self.layer_combo.setMinimumWidth(QFontMetrics(self.layer_combo.font()).width('x') * 40)
+        self.layer_combo.setLayer(None)
+        self.layer_combo.layerChanged.connect(self.selection_handler.set_layer)
+        self.toolbar.addWidget(self.layer_combo)
+
+        self.selection_handler.selection_changed.connect(self._selection_changed)
+
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for a in self.actions:
@@ -102,3 +127,8 @@ class VertexComparePlugin:
         if self.dock is not None:
             self.dock.deleteLater()
             self.dock = None
+
+    def _selection_changed(self, layer: Optional[QgsVectorLayer], selection: List[int]):
+        """
+        Triggered when the watched layer's selection is changed
+        """
