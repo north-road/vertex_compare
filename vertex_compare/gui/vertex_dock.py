@@ -55,6 +55,8 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
 
         self.setupUi(self)
 
+        self._block_feature_changes = False
+
         self.map_canvas = map_canvas
 
         self.vertex_model = VertexModel()
@@ -91,6 +93,8 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         self.layer_label.setText(
             self.tr('{} — {} features selected').format(layer.name(), layer.selectedFeatureCount()))
 
+        self._block_feature_changes = True
+
         self.selection = selection
         self.feature_model.set_feature_ids(layer, selection)
 
@@ -103,18 +107,24 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         else:
             self.feature_combo.setCurrentIndex(0)
 
+        self._block_feature_changes = False
+
         self._active_feature_changed()
 
     def _active_feature_changed(self):
         """
         Triggered when the active feature is changed
         """
+        if self._block_feature_changes:
+            return
+
         selected_index = self.feature_model.index(self.feature_combo.currentIndex(), 0)
         if selected_index.isValid():
             feature = self.feature_model.data(selected_index, FeatureModel.FEATURE_ROLE)
+            changed = self.vertex_model.feature is None or feature is None or self.vertex_model.feature.id() != feature.id()
             self.vertex_model.set_feature(feature)
-
-            self.map_canvas.flashGeometries([feature.geometry()], self.layer.crs())
+            if changed and feature is not None:
+                self.map_canvas.flashGeometries([feature.geometry()], self.layer.crs())
         else:
             self.vertex_model.set_feature(None)
 
