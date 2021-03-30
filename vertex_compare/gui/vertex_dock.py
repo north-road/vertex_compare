@@ -29,7 +29,8 @@ from qgis.core import (
     QgsVectorLayer,
     QgsCoordinateTransform,
     QgsProject,
-    QgsCsException
+    QgsCsException,
+    QgsWkbTypes
 )
 from qgis.gui import (
     QgsPanelWidget,
@@ -123,10 +124,23 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
             feature = self.feature_model.data(selected_index, FeatureModel.FEATURE_ROLE)
             changed = self.vertex_model.feature is None or feature is None or self.vertex_model.feature.id() != feature.id()
             self.vertex_model.set_feature(feature)
+
+            if feature is not None:
+                self.label_part_count.setText(str(feature.geometry().constGet().numGeometries() if feature.geometry().isMultipart() else 1))
+                self.label_vertex_count.setText(str(feature.geometry().constGet().nCoordinates()))
+                self.label_geometry_type.setText(QgsWkbTypes.translatedDisplayString(feature.geometry().wkbType()))
+            else:
+                self.label_geometry_type.clear()
+                self.label_part_count.clear()
+                self.label_vertex_count.clear()
+
             if changed and feature is not None:
                 self.map_canvas.flashGeometries([feature.geometry()], self.layer.crs())
         else:
             self.vertex_model.set_feature(None)
+            self.label_geometry_type.clear()
+            self.label_part_count.clear()
+            self.label_vertex_count.clear()
 
     def _show_settings(self):
         """

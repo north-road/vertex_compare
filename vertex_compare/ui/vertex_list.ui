@@ -29,8 +29,8 @@
    <item row="0" column="0">
     <widget class="QToolBar" name="toolbar"/>
    </item>
-   <item row="3" column="0">
-    <widget class="QComboBox" name="feature_combo"/>
+   <item row="1" column="0" colspan="2">
+    <widget class="QTableView" name="table_view"/>
    </item>
    <item row="3" column="1">
     <widget class="QPushButton" name="button_zoom">
@@ -46,8 +46,56 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0" colspan="2">
-    <widget class="QTableView" name="table_view"/>
+   <item row="3" column="0">
+    <widget class="QComboBox" name="feature_combo"/>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QWidget" name="widget" native="true">
+     <layout class="QGridLayout" name="gridLayout_3" columnstretch="0,1">
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_geometry_type">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Number of parts</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_part_count">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Geometry type</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Number of vertices</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="label_vertex_count">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>
