@@ -31,6 +31,7 @@ class VertexHighlighterManager:
         super().__init__()
 
         self.layer: Optional[QgsVectorLayer] = None
+        self.visible = False
 
     def __del__(self):
         if self.layer is not None:
@@ -41,15 +42,26 @@ class VertexHighlighterManager:
         """
         Sets the active layer
         """
-        if self.layer == layer:
-            return
-
         if self.layer is not None:
             # this is safe to call even if a generator isn't installed!
             self.layer.removeFeatureRendererGenerator(VertexHighlighterRendererGenerator.ID)
             self.layer.triggerRepaint()
 
         self.layer = layer
-        if self.layer is not None:
+        if self.layer is not None and self.visible:
             self.layer.addFeatureRendererGenerator(VertexHighlighterRendererGenerator(self.layer))
             self.layer.triggerRepaint()
+
+    def set_visible(self, visible: bool):
+        """
+        Sets whether the vertex highlights should be visible
+        """
+        self.visible = visible
+        if not self.visible and self.layer is not None:
+            # this is safe to call even if a generator isn't installed!
+            self.layer.removeFeatureRendererGenerator(VertexHighlighterRendererGenerator.ID)
+            self.layer.triggerRepaint()
+        elif self.visible and self.layer is not None:
+            self.layer.addFeatureRendererGenerator(VertexHighlighterRendererGenerator(self.layer))
+            self.layer.triggerRepaint()
+

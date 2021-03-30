@@ -28,7 +28,8 @@ from qgis.PyQt.QtGui import (
     QFontMetrics
 )
 from qgis.PyQt.QtWidgets import (
-    QToolBar
+    QToolBar,
+    QAction
 )
 from qgis.core import (
     QgsApplication,
@@ -80,6 +81,7 @@ class VertexComparePlugin(QObject):
         self.dock = None
         self.vertex_highlighter = VertexHighlighterManager()
         self.selection_handler = SelectionHandler(self)
+        self.show_vertices_action = None
 
     @staticmethod
     def tr(message):
@@ -115,6 +117,13 @@ class VertexComparePlugin(QObject):
         self.layer_combo.layerChanged.connect(self._set_layer)
         self.toolbar.addWidget(self.layer_combo)
 
+        self.show_vertices_action = QAction(self.tr("Show Vertex Numbers"), self)
+        self.show_vertices_action.setCheckable(True)
+        self.show_vertices_action.setEnabled(False)
+        self.actions.append(self.show_vertices_action)
+        self.toolbar.addAction(self.show_vertices_action)
+        self.show_vertices_action.toggled.connect(self.vertex_highlighter.set_visible)
+
         self.selection_handler.selection_changed.connect(self._selection_changed)
 
     def unload(self):
@@ -136,6 +145,11 @@ class VertexComparePlugin(QObject):
         """
         self.selection_handler.set_layer(layer)
         self.vertex_highlighter.set_layer(layer)
+        self.show_vertices_action.setEnabled(layer is not None)
+        if not self.show_vertices_action.isEnabled():
+            self.show_vertices_action.setChecked(False)
+        else:
+            self.show_vertices_action.setChecked(True)
 
     def _selection_changed(self, layer: Optional[QgsVectorLayer], selection: List[int]):
         """
