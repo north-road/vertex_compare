@@ -41,6 +41,9 @@ class FeatureModel(QAbstractItemModel):
     A model for showing features
     """
 
+    FEATURE_ID_ROLE = Qt.UserRole + 1
+    FEATURE_ROLE = FEATURE_ID_ROLE + 1
+
     def __init__(self, parent: QObject = None):
         super().__init__(parent)
 
@@ -53,7 +56,7 @@ class FeatureModel(QAbstractItemModel):
         """
         Sets the feature ids to show in the model
         """
-        self.beginRemoveRows(QModelIndex(), 0, len(self.features)-1 )
+        self.beginRemoveRows(QModelIndex(), 0, len(self.features))
         self.features = []
         self.display_expressions = []
         self.endRemoveRows()
@@ -110,4 +113,18 @@ class FeatureModel(QAbstractItemModel):
         if role in (Qt.DisplayRole, Qt.ToolTipRole, Qt.EditRole):
             return f'{self.features[index.row()].id()}: {self.display_expressions[index.row()]}'
 
+        if role == FeatureModel.FEATURE_ID_ROLE:
+            return self.features[index.row()].id()
+        if role == FeatureModel.FEATURE_ROLE:
+            return self.features[index.row()]
+
         return None
+
+    def index_from_id(self, fid: int) -> QModelIndex:
+        """
+        Returns the model index for a feature id
+        """
+        for i in range(self.rowCount()):
+            if self.data(self.index(i, 0), FeatureModel.FEATURE_ID_ROLE) == fid:
+                return self.index(i,0)
+        return QModelIndex()

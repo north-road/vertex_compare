@@ -57,6 +57,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
 
         self.feature_model = FeatureModel()
         self.feature_combo.setModel(self.feature_model)
+        self.feature_combo.currentIndexChanged.connect(self._active_feature_changed)
 
         self.toolbar.addSeparator()
 
@@ -73,14 +74,36 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         """
         Sets the selection to show in the dock
         """
-        self.layer = layer
-        self.selection = selection
+        if layer == self.layer:
+            prev_feature_id = self.feature_model.data(self.feature_model.index(self.feature_combo.currentIndex(), 0), FeatureModel.FEATURE_ID_ROLE)
+        else:
+            prev_feature_id = None
 
+        self.layer = layer
+        self.layer_label.setText(self.tr('{} — {} features selected').format(layer.name(), layer.selectedFeatureCount()))
+
+        self.selection = selection
         self.feature_model.set_feature_ids(layer, selection)
 
-        if selection:
-            features = self.layer.getFeatures(QgsFeatureRequest().setNoAttributes().setFilterFids(selection))
-            self.vertex_model.set_feature(next(features))
+        if prev_feature_id is not None:
+            prev_index = self.feature_model.index_from_id(prev_feature_id)
+            if prev_index.isValid():
+                self.feature_combo.setCurrentIndex(self.feature_model.index_from_id(prev_feature_id).row())
+            else:
+                self.feature_combo.setCurrentIndex(0)
+        else:
+            self.feature_combo.setCurrentIndex(0)
+
+        self._active_feature_changed()
+
+    def _active_feature_changed(self):
+        """
+        Triggered when the active feature is changed
+        """
+        selected_index = self.feature_model.index(self.feature_combo.currentIndex(), 0)
+        if selected_index.isValid():
+            feature = self.feature_model.data(selected_index, FeatureModel.FEATURE_ROLE)
+            self.vertex_model.set_feature(feature)
         else:
             self.vertex_model.set_feature(None)
 
