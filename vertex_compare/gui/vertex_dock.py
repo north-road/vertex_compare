@@ -13,6 +13,11 @@ __copyright__ = 'Copyright 2018, North Road'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from typing import (
+    List,
+    Optional
+)
+
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import (
     QWidget,
@@ -20,7 +25,9 @@ from qgis.PyQt.QtWidgets import (
     QAction
 )
 from qgis.core import (
-    QgsApplication
+    QgsApplication,
+    QgsVectorLayer,
+    QgsFeatureRequest
 )
 from qgis.gui import (
     QgsPanelWidget,
@@ -29,6 +36,7 @@ from qgis.gui import (
 )
 
 from vertex_compare.gui.gui_utils import GuiUtils
+from vertex_compare.core.vertex_model import VertexModel
 
 WIDGET, _ = uic.loadUiType(GuiUtils.get_ui_file_path('vertex_list.ui'))
 
@@ -43,6 +51,9 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
 
         self.setupUi(self)
 
+        self.vertex_model = VertexModel()
+        self.table_view.setModel(self.vertex_model)
+
         self.toolbar.addSeparator()
 
         self.settings_action = QAction(self.tr('Settings'), self)
@@ -51,6 +62,21 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         self.toolbar.addAction(self.settings_action)
 
         self.settings_panel = None
+        self.layer: Optional[QgsVectorLayer] = None
+        self.selection: List[int] = []
+
+    def set_selection(self, layer: QgsVectorLayer, selection: List[int] ):
+        """
+        Sets the selection to show in the dock
+        """
+        self.layer = layer
+        self.selection = selection
+
+        if selection:
+            features = self.layer.getFeatures(QgsFeatureRequest().setNoAttributes().setFilterFids(selection))
+            self.vertex_model.set_feature(next(features))
+        else:
+            self.vertex_model.set_feature(None)
 
     def _show_settings(self):
         """
@@ -116,3 +142,9 @@ class VertexDockWidget(QgsDockWidget):
         self.table_widget = VertexListWidget()
         self.table_widget.setDockMode(True)
         self.stack.setMainPanel(self.table_widget)
+
+    def set_selection(self, layer: QgsVectorLayer, selection: List[int] ):
+        """
+        Sets the selection to show in the dock
+        """
+        self.table_widget.set_selection(layer, selection)

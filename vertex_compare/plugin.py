@@ -84,6 +84,7 @@ class VertexComparePlugin(QObject):
         self.vertex_highlighter = VertexHighlighterManager()
         self.selection_handler = SelectionHandler(self)
         self.show_vertices_action = None
+        self.show_dock_action = None
 
     @staticmethod
     def tr(message):
@@ -130,10 +131,10 @@ class VertexComparePlugin(QObject):
         self.toolbar.addAction(self.show_vertices_action)
         self.show_vertices_action.toggled.connect(self.vertex_highlighter.set_visible)
 
-        self.show_vertices_action = QAction(self.tr('Show Vertices'), parent=self.toolbar)
-        self.toolbar.addAction(self.show_vertices_action)
-        self.actions.append(self.show_vertices_action)
-        self.dock.setToggleVisibilityAction(self.show_vertices_action)
+        self.show_dock_action = QAction(self.tr('Show Vertices'), parent=self.toolbar)
+        self.toolbar.addAction(self.show_dock_action)
+        self.actions.append(self.show_dock_action)
+        self.dock.setToggleVisibilityAction(self.show_dock_action)
 
         self.selection_handler.selection_changed.connect(self._selection_changed)
 
@@ -166,3 +167,4 @@ class VertexComparePlugin(QObject):
         """
         Triggered when the watched layer's selection is changed
         """
+        self.dock.set_selection(layer, selection)
