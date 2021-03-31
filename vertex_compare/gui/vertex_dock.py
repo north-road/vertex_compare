@@ -19,7 +19,10 @@ from typing import (
 )
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import (
+    pyqtSignal,
+    QModelIndex
+)
 from qgis.PyQt.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -32,7 +35,8 @@ from qgis.core import (
     QgsCoordinateTransform,
     QgsProject,
     QgsCsException,
-    QgsWkbTypes
+    QgsWkbTypes,
+    QgsPointXY
 )
 from qgis.gui import (
     QgsPanelWidget,
@@ -88,6 +92,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
 
         self.button_zoom.clicked.connect(self._zoom_to_feature)
         self.table_view.selectionModel().selectionChanged.connect(self._vertex_selection_changed)
+        self.table_view.doubleClicked.connect(self._table_double_click)
 
     def set_selection(self, layer: QgsVectorLayer, selection: List[int]):
         """
@@ -209,6 +214,19 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
             feature_id = self.vertex_model.feature.id()
 
         self.selected_vertex_changed.emit(feature_id, vertex_number)
+
+    def _table_double_click(self, index: QModelIndex):
+        """
+        Triggered when the table is double-clicked
+        """
+        if not index.isValid():
+            return
+
+        point = self.vertex_model.data(index, VertexModel.VERTEX_POINT_ROLE)
+
+        map_point = self.map_canvas.mapSettings().layerToMapCoordinates(self.layer, point)
+        self.map_canvas.setCenter(QgsPointXY(map_point))
+        self.map_canvas.refresh()
 
 
 class VertexDockWidget(QgsDockWidget):

@@ -41,6 +41,7 @@ class VertexModel(QAbstractTableModel):
     """
 
     VERTEX_NUMBER_ROLE = Qt.UserRole + 1
+    VERTEX_POINT_ROLE = Qt.UserRole + 2
 
     COLUMN_ID = 0
     COLUMN_X = 1
@@ -119,6 +120,8 @@ class VertexModel(QAbstractTableModel):
 
         if role == VertexModel.VERTEX_NUMBER_ROLE:
             return index.row() + 1
+        if role == VertexModel.VERTEX_POINT_ROLE:
+            return self.vertices[index.row()][1]
 
         return None
 
