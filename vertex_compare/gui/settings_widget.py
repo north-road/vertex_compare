@@ -68,6 +68,7 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
         self.number_format_button.clicked.connect(self._set_number_format)
 
         self.button_reset_defaults.clicked.connect(self._reset_settings)
+        self.check_center_on_selection.toggled.connect(self._center_on_selected_changed)
 
     def restore_settings(self):
         """
@@ -75,6 +76,7 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
         """
         current_label_filter = SettingsRegistry.label_filtering()
         self.filtering_combo.setCurrentIndex(self.filtering_combo.findData(current_label_filter))
+        self.check_center_on_selection.setChecked(SettingsRegistry.center_on_selected())
 
         self.point_symbol_button.setSymbol(SettingsRegistry.vertex_symbol())
         self.vertex_font_button.setTextFormat(SettingsRegistry.vertex_format())
@@ -92,6 +94,9 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
 
         self.number_format = SettingsRegistry.default_number_format()
         SettingsRegistry.set_number_format(self.number_format)
+
+        SettingsRegistry.set_center_on_selected(False)
+        self.check_center_on_selection.setChecked(False)
 
         self.vertex_symbol_changed.emit()
         self.vertex_text_format_changed.emit()
@@ -135,3 +140,9 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
 
         format_widget.changed.connect(_on_changed)
         self.openPanel(format_widget)
+
+    def _center_on_selected_changed(self):
+        """
+        Triggered when the center on selection option is toggled
+        """
+        SettingsRegistry.set_center_on_selected(self.check_center_on_selection.isChecked())

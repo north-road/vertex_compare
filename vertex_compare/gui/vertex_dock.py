@@ -47,6 +47,7 @@ from qgis.gui import (
 
 from vertex_compare.core.feature_model import FeatureModel
 from vertex_compare.core.vertex_model import VertexModel
+from vertex_compare.core.settings_registry import SettingsRegistry
 from vertex_compare.gui.gui_utils import GuiUtils
 from vertex_compare.gui.settings_widget import SettingsWidget
 
@@ -208,6 +209,13 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
             selected_index = self.vertex_model.index(self.table_view.selectionModel().selectedIndexes()[0].row(), 0)
             if selected_index.isValid():
                 vertex_number = self.vertex_model.data(selected_index, VertexModel.VERTEX_NUMBER_ROLE)
+
+                if SettingsRegistry.center_on_selected():
+                    point = self.vertex_model.data(selected_index, VertexModel.VERTEX_POINT_ROLE)
+
+                    map_point = self.map_canvas.mapSettings().layerToMapCoordinates(self.layer, point)
+                    self.map_canvas.setCenter(QgsPointXY(map_point))
+                    self.map_canvas.refresh()
 
         feature_id = None
         if self.vertex_model.feature is not None:

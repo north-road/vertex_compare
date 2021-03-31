@@ -68,6 +68,24 @@ class SettingsRegistry:
         settings.setValue('vertex_compare/labels', filtering, QgsSettings.Plugins)
 
     @staticmethod
+    def center_on_selected() -> bool:
+        """
+        Returns the center on selected setting
+        """
+        settings = QgsSettings()
+        return settings.value('vertex_compare/center_on_selected',
+                              False,
+                              bool, QgsSettings.Plugins)
+
+    @staticmethod
+    def set_center_on_selected(center: bool):
+        """
+        Sets whether the map should be centered on the selected vertex automatically
+        """
+        settings = QgsSettings()
+        settings.setValue('vertex_compare/center_on_selected', center, QgsSettings.Plugins)
+
+    @staticmethod
     def default_vertex_symbol() -> QgsMarkerSymbol:
         """
         Returns the default marker symbol to use for vertices
@@ -184,7 +202,8 @@ class SettingsRegistry:
         else:
             doc = QDomDocument()
             doc.setContent(format_doc)
-            SettingsRegistry.NUMBER_FORMAT = QgsApplication.numericFormatRegistry().createFromXml(doc.documentElement(), QgsReadWriteContext())
+            SettingsRegistry.NUMBER_FORMAT = QgsApplication.numericFormatRegistry().createFromXml(doc.documentElement(),
+                                                                                                  QgsReadWriteContext())
 
         return SettingsRegistry.NUMBER_FORMAT.clone()
 
