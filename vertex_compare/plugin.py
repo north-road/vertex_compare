@@ -122,7 +122,7 @@ class VertexComparePlugin(QObject):
         self.layer_combo.setAllowEmptyLayer(True, self.tr('Disabled'))
         self.layer_combo.setFilters(QgsMapLayerProxyModel.PolygonLayer | QgsMapLayerProxyModel.LineLayer)
         self.layer_combo.setMinimumWidth(QFontMetrics(self.layer_combo.font()).width('x') * 40)
-        self.layer_combo.setLayer(None)
+        self.layer_combo.setCurrentIndex(0)
         self.layer_combo.layerChanged.connect(self._set_layer)
         self.toolbar.addWidget(self.layer_combo)
 
