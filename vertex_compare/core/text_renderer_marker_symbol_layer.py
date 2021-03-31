@@ -13,7 +13,7 @@ __copyright__ = 'Copyright 2021, North Road'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from typing import Optional
+from typing import Optional, Dict
 
 from qgis.PyQt.QtCore import (
     QPointF,
@@ -25,7 +25,6 @@ from qgis.core import (
     QgsTextFormat,
     QgsTextRenderer,
     QgsRenderContext,
-    QgsFeature,
     QgsUnitTypes
 )
 
@@ -41,24 +40,42 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         self.vertex_id = 1
         self.current_feature_id = None
         self.target_vertex = target_vertex
+        self.marker_symbol = None
+        self.uncommon_vertices = {}
 
     def layerType(self) -> str:  # pylint: disable=missing-function-docstring
         return 'TextRenderer'
+
+    def set_uncommon_vertices(self, vertices: Dict):
+        self.uncommon_vertices = vertices
+
+    def setSubSymbol(self, symbol):
+        self.marker_symbol = symbol
+        return True
+
+    def subSymbol(self):
+        return self.marker_symbol
 
     def startRender(self,  # pylint: disable=missing-function-docstring
                     context: QgsSymbolRenderContext):  # pylint: disable=unused-argument
         self.vertex_id = 1
         self.current_feature_id = None
+        if self.subSymbol():
+            self.subSymbol().startRender(context.renderContext(), context.fields())
 
     def stopRender(self, context: QgsSymbolRenderContext):  # pylint: disable=missing-function-docstring,unused-argument
         self.vertex_id = 1
         self.current_feature_id = None
+        if self.subSymbol():
+            self.subSymbol().stopRender(context.renderContext())
 
     def usedAttributes(self, context: QgsRenderContext):  # pylint: disable=missing-function-docstring
         return self.text_format.referencedFields(context)
 
     def setColor(self, color):  # pylint: disable=missing-function-docstring
         self.text_format.setColor(color)
+        if self.subSymbol():
+            self.subSymbol().setColor(color)
 
     def renderPoint(self,  # pylint: disable=missing-function-docstring
                     point: QPointF,
@@ -71,8 +88,7 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
             self.current_feature_id = feature_id
             self.vertex_id = 1
 
-        uncommon = context.renderContext().expressionContext().variable('uncommon_vertices')
-        if uncommon and self.vertex_id not in uncommon[feature_id]:
+        if feature_id in self.uncommon_vertices and self.vertex_id not in self.uncommon_vertices[feature_id]:
             self.vertex_id += 1
             return
 
@@ -86,6 +102,9 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
             self.vertex_id += 1
             return
 
+        if self.subSymbol():
+            self.subSymbol().renderPoint(point, None, context.renderContext())
+
         # offset point a little
         offset = context.renderContext().convertToPainterUnits(1, QgsUnitTypes.RenderMillimeters)
         render_point = QPointF(point.x() + offset, point.y() - offset)
@@ -95,7 +114,10 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         self.vertex_id += 1
 
     def clone(self):  # pylint: disable=missing-function-docstring
-        return TextRendererMarkerSymbolLayer(self.text_format, self.target_vertex)
+        res = TextRendererMarkerSymbolLayer(self.text_format, self.target_vertex)
+        if self.subSymbol():
+            res.setSubSymbol(self.subSymbol().clone())
+        return res
 
     def properties(self):  # pylint: disable=missing-function-docstring
         return {}

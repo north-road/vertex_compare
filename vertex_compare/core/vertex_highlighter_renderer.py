@@ -31,8 +31,7 @@ from qgis.core import (
     QgsFillSymbol,
     QgsGeometry,
     QgsPointXY,
-    QgsVertexId,
-    QgsExpressionContextScope
+    QgsVertexId
 )
 
 from vertex_compare.core.settings_registry import SettingsRegistry
@@ -68,26 +67,17 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         # not so nice, but required to allow us to dynamically change this color mid-way through rendering
         for layer in vertex_marker_symbol:
             layer.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, QgsProperty.fromValue(None))
-            if vertex_number is not None:
-                layer.setDataDefinedProperty(QgsSymbolLayer.PropertyLayerEnabled,
-                                             QgsProperty.fromExpression(f'@geometry_point_num = {vertex_number}'))
-
-        marker_line.setSubSymbol(vertex_marker_symbol)
-        symbol.changeSymbolLayer(0, marker_line)
-
-        marker_line2 = QgsMarkerLineSymbolLayer()
-        marker_line2.setRotateMarker(False)
-        marker_line2.setPlacement(QgsMarkerLineSymbolLayer.Vertex)
 
         font_marker_symbol = QgsMarkerSymbol()
 
         text_format = SettingsRegistry.vertex_format()
         font_marker = TextRendererMarkerSymbolLayer(text_format, vertex_number)
+        font_marker.setSubSymbol(vertex_marker_symbol)
 
         font_marker_symbol.changeSymbolLayer(0, font_marker)
-        marker_line2.setSubSymbol(font_marker_symbol)
+        marker_line.setSubSymbol(font_marker_symbol)
 
-        symbol.appendSymbolLayer(marker_line2)
+        symbol.changeSymbolLayer(0, marker_line)
 
         symbol.setClipFeaturesToExtent(False)
 
@@ -97,7 +87,6 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         self.feature_index = 0
         self.vertex_number = vertex_number
         self.topological_geometries = topological_geometries
-        self.expression_scope = QgsExpressionContextScope()
 
     def calculate_topology(self) -> Dict[int, List[int]]:
         """
@@ -136,8 +125,7 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         self.feature_index = 0
 
         if self.topological_geometries:
-            self.expression_scope.setVariable('uncommon_vertices', self.calculate_topology())
-            context.expressionContext().appendScope(self.expression_scope)
+            self.symbol()[0].subSymbol()[0].set_uncommon_vertices(self.calculate_topology())
 
         super().startRender(context, fields)
 
