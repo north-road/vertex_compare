@@ -38,7 +38,7 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
     Settings widget
     """
 
-    extent_symbol_changed = pyqtSignal()
+    vertex_symbol_changed = pyqtSignal()
     label_filter_changed = pyqtSignal()
 
     def __init__(self, parent: QWidget = None):
@@ -52,13 +52,12 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
         self.filtering_combo.addItem(self.tr('Selected Vertex Only'), SettingsRegistry.LABEL_SELECTED)
         self.filtering_combo.addItem(self.tr('All Vertices'), SettingsRegistry.LABEL_ALL)
 
-        self.arrow_style_button.setSymbolType(QgsSymbol.Line)
-        self.extent_style_button.setSymbolType(QgsSymbol.Fill)
+        self.point_symbol_button.setSymbolType(QgsSymbol.Marker)
         self.restore_settings()
 
-        self.arrow_style_button.changed.connect(self._symbol_changed)
-        self.extent_style_button.changed.connect(self._extent_symbol_changed)
+        self.point_symbol_button.changed.connect(self._point_symbol_changed)
         self.filtering_combo.currentIndexChanged[int].connect(self._label_filter_changed)
+        self.button_reset_defaults.clicked.connect(self._reset_settings)
 
     def restore_settings(self):
         """
@@ -67,22 +66,22 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
         current_label_filter = SettingsRegistry.label_filtering()
         self.filtering_combo.setCurrentIndex(self.filtering_combo.findData(current_label_filter))
 
-        self.arrow_style_button.setSymbol(SettingsRegistry.arrow_symbol())
-        self.extent_style_button.setSymbol(SettingsRegistry.extent_symbol())
+        self.point_symbol_button.setSymbol(SettingsRegistry.vertex_symbol())
 
-    def _symbol_changed(self):
+    def _reset_settings(self):
         """
-        Called when the line symbol type is changed
+        Resets settings to their defaults
         """
-        SettingsRegistry.set_arrow_symbol(self.arrow_style_button.symbol())
-        self.gcp_manager.update_line_symbols()
+        self.point_symbol_button.setSymbol(SettingsRegistry.default_vertex_symbol())
+        SettingsRegistry.set_vertex_symbol(SettingsRegistry.default_vertex_symbol())
+        self.vertex_symbol_changed.emit()
 
-    def _extent_symbol_changed(self):
+    def _point_symbol_changed(self):
         """
-        Called when the extent symbol type is changed
+        Called when the marker symbol type is changed
         """
-        SettingsRegistry.set_extent_symbol(self.extent_style_button.symbol())
-        self.extent_symbol_changed.emit()
+        SettingsRegistry.set_vertex_symbol(self.point_symbol_button.symbol())
+        self.vertex_symbol_changed.emit()
 
     def _label_filter_changed(self, _: int):
         """

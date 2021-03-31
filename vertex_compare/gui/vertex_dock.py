@@ -54,6 +54,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
     A table for vertex lists
     """
     label_filter_changed = pyqtSignal()
+    vertex_symbol_changed = pyqtSignal()
     selected_vertex_changed = pyqtSignal(int, object)
 
     def __init__(self, map_canvas: QgsMapCanvas, parent: QWidget = None):
@@ -162,6 +163,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         self.settings_panel = SettingsWidget()
         self.settings_panel.panelAccepted.connect(self._update_settings)
         self.settings_panel.label_filter_changed.connect(self.label_filter_changed)
+        self.settings_panel.vertex_symbol_changed.connect(self.vertex_symbol_changed)
         self.openPanel(self.settings_panel)
 
     def _update_settings(self):
@@ -212,6 +214,7 @@ class VertexDockWidget(QgsDockWidget):
     """
     label_filter_changed = pyqtSignal()
     selected_vertex_changed = pyqtSignal(int, object)
+    vertex_symbol_changed = pyqtSignal()
 
     def __init__(self, map_canvas: QgsMapCanvas, parent=None):
         super().__init__(parent)
@@ -236,6 +239,7 @@ class VertexDockWidget(QgsDockWidget):
 
         self.table_widget.label_filter_changed.connect(self.label_filter_changed)
         self.table_widget.selected_vertex_changed.connect(self.selected_vertex_changed)
+        self.table_widget.vertex_symbol_changed.connect(self.vertex_symbol_changed)
 
     def set_selection(self, layer: QgsVectorLayer, selection: List[int]):
         """

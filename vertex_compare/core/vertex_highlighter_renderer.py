@@ -37,7 +37,7 @@ from qgis.core import (
 )
 
 from vertex_compare.core.text_renderer_marker_symbol_layer import TextRendererMarkerSymbolLayer
-
+from vertex_compare.core.settings_registry import SettingsRegistry
 
 class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
     """
@@ -60,18 +60,12 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         marker_line.setRotateMarker(False)
         marker_line.setPlacement(QgsMarkerLineSymbolLayer.Vertex)
 
-        vertex_marker_symbol = QgsMarkerSymbol()
-
-        simple_marker = QgsSimpleMarkerSymbolLayer(QgsSimpleMarkerSymbolLayer.Circle)
-        simple_marker.setSize(1)
-        simple_marker.setStrokeStyle(Qt.NoPen)
+        vertex_marker_symbol = SettingsRegistry.vertex_symbol()
         # not so nice, but required to allow us to dynamically change this color mid-way through rendering
-        simple_marker.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, QgsProperty.fromValue(None))
-
-        if vertex_number is not None:
-            simple_marker.setDataDefinedProperty(QgsSymbolLayer.PropertyLayerEnabled, QgsProperty.fromExpression(f'@geometry_point_num = {vertex_number}'))
-
-        vertex_marker_symbol.changeSymbolLayer(0, simple_marker)
+        for layer in vertex_marker_symbol:
+            layer.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, QgsProperty.fromValue(None))
+            if vertex_number is not None:
+                layer.setDataDefinedProperty(QgsSymbolLayer.PropertyLayerEnabled, QgsProperty.fromExpression(f'@geometry_point_num = {vertex_number}'))
 
         marker_line.setSubSymbol(vertex_marker_symbol)
         symbol.changeSymbolLayer(0, marker_line)

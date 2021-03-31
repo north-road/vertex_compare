@@ -13,6 +13,9 @@ __copyright__ = 'Copyright 2020, North Road'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from qgis.PyQt.QtCore import (
+    Qt
+)
 from qgis.PyQt.QtXml import (
     QDomDocument
 )
@@ -21,7 +24,7 @@ from qgis.core import (
     QgsLineSymbol,
     QgsSimpleLineSymbolLayer,
     QgsMarkerLineSymbolLayer,
-    QgsEllipseSymbolLayer,
+    QgsSimpleMarkerSymbolLayer,
     QgsMarkerSymbol,
     QgsSymbolLayerUtils,
     QgsReadWriteContext,
@@ -39,8 +42,8 @@ class SettingsRegistry:
     LABEL_SELECTED = 2
     LABEL_ALL = 3
 
-    ARROW_SYMBOL = None
-    EXTENT_SYMBOL = None
+    VERTEX_SYMBOL = None
+    VERTEX_FONT = None
 
     @staticmethod
     def label_filtering() -> int:
@@ -62,132 +65,49 @@ class SettingsRegistry:
         settings.setValue('vertex_compare/labels', filtering, QgsSettings.Plugins)
 
     @staticmethod
-    def default_arrow_symbol() -> QgsLineSymbol:
+    def default_vertex_symbol() -> QgsMarkerSymbol:
         """
-        Returns the default arrow symbol to use for GCP lines
+        Returns the default marker symbol to use for vertices
         """
-        symbol = QgsLineSymbol([])
-        simple_line = QgsSimpleLineSymbolLayer.create(
-            {'align_dash_pattern': '0', 'capstyle': 'flat', 'customdash': '5;2',
-             'customdash_map_unit_scale': '3x:0,0,0,0,0,0', 'customdash_unit': 'MM', 'dash_pattern_offset': '0',
-             'dash_pattern_offset_map_unit_scale': '3x:0,0,0,0,0,0', 'dash_pattern_offset_unit': 'MM',
-             'draw_inside_polygon': '0', 'joinstyle': 'round', 'line_color': '255,170,0,255', 'line_style': 'solid',
-             'line_width': '1', 'line_width_unit': 'Point', 'offset': '0', 'offset_map_unit_scale': '3x:0,0,0,0,0,0',
-             'offset_unit': 'Point', 'ring_filter': '0', 'tweak_dash_pattern_on_corners': '0', 'use_custom_dash': '0',
-             'width_map_unit_scale': '3x:0,0,0,0,0,0'}
-        )
-        symbol.changeSymbolLayer(0, simple_line)
-
-        arrow_marker = QgsMarkerLineSymbolLayer.create(
-            {'average_angle_length': '4', 'average_angle_map_unit_scale': '3x:0,0,0,0,0,0', 'average_angle_unit': 'MM',
-             'interval': '3', 'interval_map_unit_scale': '3x:0,0,0,0,0,0', 'interval_unit': 'MM', 'offset': '0',
-             'offset_along_line': '0.8', 'offset_along_line_map_unit_scale': '3x:0,0,0,0,0,0',
-             'offset_along_line_unit': 'MM', 'offset_map_unit_scale': '3x:0,0,0,0,0,0', 'offset_unit': 'MM',
-             'placement': 'lastvertex', 'ring_filter': '0', 'rotate': '1'}
-        )
-
-        triangle = QgsEllipseSymbolLayer.create(
-            {'angle': '270', 'color': '255,170,0,255', 'horizontal_anchor_point': '1', 'joinstyle': 'miter',
-             'offset': '0,0', 'offset_map_unit_scale': '3x:0,0,0,0,0,0', 'offset_unit': 'Point',
-             'outline_color': '255,170,0,255', 'outline_style': 'no', 'outline_width': '0',
-             'outline_width_map_unit_scale': '3x:0,0,0,0,0,0', 'outline_width_unit': 'MM', 'size': '7',
-             'size_map_unit_scale': '3x:0,0,0,0,0,0', 'size_unit': 'MM', 'symbol_height': '5',
-             'symbol_height_map_unit_scale': '3x:0,0,0,0,0,0', 'symbol_height_unit': 'Point', 'symbol_name': 'triangle',
-             'symbol_width': '7', 'symbol_width_map_unit_scale': '3x:0,0,0,0,0,0', 'symbol_width_unit': 'Point',
-             'vertical_anchor_point': '1'})
-        triangle_symbol = QgsMarkerSymbol([])
-        triangle_symbol.changeSymbolLayer(0, triangle)
-        arrow_marker.setSubSymbol(triangle_symbol)
-
-        symbol.appendSymbolLayer(arrow_marker)
-
+        symbol = QgsMarkerSymbol()
+        simple_marker = QgsSimpleMarkerSymbolLayer(QgsSimpleMarkerSymbolLayer.Circle)
+        simple_marker.setSize(1)
+        simple_marker.setStrokeStyle(Qt.NoPen)
+        symbol.changeSymbolLayer(0, simple_marker)
         return symbol
 
     @staticmethod
-    def arrow_symbol() -> QgsLineSymbol:
+    def vertex_symbol() -> QgsMarkerSymbol:
         """
-        Returns the arrow symbol to use for lines
+        Returns the marker symbol to use for vertices
         """
-        if SettingsRegistry.ARROW_SYMBOL is not None:
-            return SettingsRegistry.ARROW_SYMBOL.clone()
+        if SettingsRegistry.VERTEX_SYMBOL is not None:
+            return SettingsRegistry.VERTEX_SYMBOL.clone()
 
         settings = QgsSettings()
-        symbol_doc = settings.value('vector_corrections/arrow_symbol', '', str, QgsSettings.Plugins)
+        symbol_doc = settings.value('vertex_compare/marker_symbol', '', str, QgsSettings.Plugins)
         if not symbol_doc:
-            SettingsRegistry.ARROW_SYMBOL = SettingsRegistry.default_arrow_symbol()
+            SettingsRegistry.VERTEX_SYMBOL = SettingsRegistry.default_vertex_symbol()
         else:
             doc = QDomDocument()
             doc.setContent(symbol_doc)
-            SettingsRegistry.ARROW_SYMBOL = QgsSymbolLayerUtils.loadSymbol(doc.documentElement(), QgsReadWriteContext())
+            SettingsRegistry.VERTEX_SYMBOL = QgsSymbolLayerUtils.loadSymbol(doc.documentElement(), QgsReadWriteContext())
 
-        return SettingsRegistry.ARROW_SYMBOL.clone()
+        return SettingsRegistry.VERTEX_SYMBOL.clone()
 
     @staticmethod
-    def set_arrow_symbol(symbol: QgsLineSymbol):
+    def set_vertex_symbol(symbol: QgsMarkerSymbol):
         """
-        Sets the arrow symbol to use for lines
+        Sets the marker symbol to use for vertices
         """
-        SettingsRegistry.ARROW_SYMBOL = symbol.clone()
+        SettingsRegistry.VERTEX_SYMBOL = symbol.clone()
 
         doc = QDomDocument()
-        elem = QgsSymbolLayerUtils.saveSymbol('arrow', symbol, doc, QgsReadWriteContext())
+        elem = QgsSymbolLayerUtils.saveSymbol('vertex', symbol, doc, QgsReadWriteContext())
         doc.appendChild(elem)
 
         settings = QgsSettings()
-        settings.setValue('vector_corrections/arrow_symbol', doc.toString(), QgsSettings.Plugins)
-
-    @staticmethod
-    def default_extent_symbol() -> QgsFillSymbol:
-        """
-        Returns the default fill symbol to use for shading AOIs
-        """
-        symbol = QgsFillSymbol([])
-        simple_fill = QgsSimpleFillSymbolLayer.create(
-            {'color': '195,202,4,112',
-             'joinstyle': 'bevel',
-             'outline_color': '195,202,4,114',
-             'outline_style': 'solid',
-             'outline_width': '0.46',
-             'outline_width_unit': 'MM',
-             'style': 'dense7'}
-        )
-        symbol.changeSymbolLayer(0, simple_fill)
-
-        return symbol
-
-    @staticmethod
-    def extent_symbol() -> QgsFillSymbol:
-        """
-        Returns the fill symbol to use for extents
-        """
-        if SettingsRegistry.EXTENT_SYMBOL is not None:
-            return SettingsRegistry.EXTENT_SYMBOL.clone()
-
-        settings = QgsSettings()
-        symbol_doc = settings.value('vector_corrections/extent_symbol', '', str, QgsSettings.Plugins)
-        if not symbol_doc:
-            SettingsRegistry.EXTENT_SYMBOL = SettingsRegistry.default_extent_symbol()
-        else:
-            doc = QDomDocument()
-            doc.setContent(symbol_doc)
-            SettingsRegistry.EXTENT_SYMBOL = QgsSymbolLayerUtils.loadSymbol(doc.documentElement(),
-                                                                            QgsReadWriteContext())
-
-        return SettingsRegistry.EXTENT_SYMBOL.clone()
-
-    @staticmethod
-    def set_extent_symbol(symbol: QgsFillSymbol):
-        """
-        Sets the fill symbol to use for extents
-        """
-        SettingsRegistry.EXTENT_SYMBOL = symbol.clone()
-
-        doc = QDomDocument()
-        elem = QgsSymbolLayerUtils.saveSymbol('extent', symbol, doc, QgsReadWriteContext())
-        doc.appendChild(elem)
-
-        settings = QgsSettings()
-        settings.setValue('vector_corrections/extent_symbol', doc.toString(), QgsSettings.Plugins)
+        settings.setValue('vertex_compare/marker_symbol', doc.toString(), QgsSettings.Plugins)
 
 
 SETTINGS_REGISTRY = SettingsRegistry()
