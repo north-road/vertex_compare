@@ -110,11 +110,14 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
 
             const_geom = geometry.constGet()
             vid = QgsVertexId()
+
+            vertex_no = 1
             while True:
                 ok, vertex = const_geom.nextVertex(vid)
                 if ok:
                     if not QgsPointXY(vertex) in _common_vertices:
-                        res.append(QgsVertexId(vid).vertex + 1)
+                        res.append(vertex_no)
+                    vertex_no += 1
                 else:
                     break
 
