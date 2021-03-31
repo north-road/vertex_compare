@@ -166,6 +166,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         self.settings_panel.label_filter_changed.connect(self.label_filter_changed)
         self.settings_panel.vertex_symbol_changed.connect(self.vertex_symbol_changed)
         self.settings_panel.vertex_text_format_changed.connect(self.vertex_text_format_changed)
+        self.settings_panel.number_format_changed.connect(self.vertex_model.number_format_changed)
         self.openPanel(self.settings_panel)
 
     def _update_settings(self):

@@ -25,7 +25,8 @@ from qgis.core import (
 )
 from qgis.gui import (
     QgsPanelWidget,
-    QgsFontButton
+    QgsFontButton,
+    QgsNumericFormatSelectorWidget
 )
 
 from vertex_compare.core.settings_registry import SettingsRegistry
@@ -42,11 +43,14 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
     vertex_symbol_changed = pyqtSignal()
     vertex_text_format_changed = pyqtSignal()
     label_filter_changed = pyqtSignal()
+    number_format_changed = pyqtSignal()
 
     def __init__(self, parent: QWidget = None):
         super().__init__(parent)
 
         self.setupUi(self)
+
+        self.number_format = None
 
         self.setPanelTitle(self.tr('Settings'))
 
@@ -61,6 +65,8 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
         self.point_symbol_button.changed.connect(self._point_symbol_changed)
         self.vertex_font_button.changed.connect(self._vertex_format_changed)
         self.filtering_combo.currentIndexChanged[int].connect(self._label_filter_changed)
+        self.number_format_button.clicked.connect(self._set_number_format)
+
         self.button_reset_defaults.clicked.connect(self._reset_settings)
 
     def restore_settings(self):
@@ -72,6 +78,7 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
 
         self.point_symbol_button.setSymbol(SettingsRegistry.vertex_symbol())
         self.vertex_font_button.setTextFormat(SettingsRegistry.vertex_format())
+        self.number_format = SettingsRegistry.number_format()
 
     def _reset_settings(self):
         """
@@ -83,8 +90,12 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
         self.vertex_font_button.setTextFormat(SettingsRegistry.default_vertex_format())
         SettingsRegistry.set_vertex_format(SettingsRegistry.default_vertex_format())
 
+        self.number_format = SettingsRegistry.default_number_format()
+        SettingsRegistry.set_number_format(self.number_format)
+
         self.vertex_symbol_changed.emit()
         self.vertex_text_format_changed.emit()
+        self.number_format_changed.emit()
 
     def _point_symbol_changed(self):
         """
@@ -108,3 +119,19 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
             int(self.filtering_combo.currentData())
         )
         self.label_filter_changed.emit()
+
+    def _set_number_format(self):
+        """
+        Triggered when the user opts to change the number format
+        """
+        format_widget = QgsNumericFormatSelectorWidget(self)
+        format_widget.setPanelTitle(self.tr("Number Format"))
+        format_widget.setFormat(self.number_format)
+
+        def _on_changed():
+            self.number_format = format_widget.format()
+            SettingsRegistry.set_number_format(self.number_format)
+            self.number_format_changed.emit()
+
+        format_widget.changed.connect(_on_changed)
+        self.openPanel(format_widget)

@@ -28,8 +28,11 @@ from qgis.PyQt.QtCore import (
 from qgis.core import (
     QgsFeature,
     QgsVertexId,
-    QgsPoint
+    QgsPoint,
+    QgsNumericFormatContext
 )
+
+from vertex_compare.core.settings_registry import SettingsRegistry
 
 
 class VertexModel(QAbstractTableModel):
@@ -51,6 +54,7 @@ class VertexModel(QAbstractTableModel):
         self.vertices: List[Union[QgsVertexId, QgsPoint]] = []
         self.has_z = False
         self.has_m = False
+        self.number_format = SettingsRegistry.number_format()
 
     def set_feature(self, feature: Optional[QgsFeature]):
         """
@@ -102,14 +106,16 @@ class VertexModel(QAbstractTableModel):
         if role in (Qt.DisplayRole, Qt.ToolTipRole, Qt.EditRole):
             if index.column() == VertexModel.COLUMN_ID:
                 return index.row() + 1
-            if index.column() == VertexModel.COLUMN_X:
-                return "{:.2f}".format(self.vertices[index.row()][1].x())
-            if index.column() == VertexModel.COLUMN_Y:
-                return "{:.2f}".format(self.vertices[index.row()][1].y())
-            if index.column() == VertexModel.COLUMN_Y + 1 and self.has_z:
-                return "{:.2f}".format(self.vertices[index.row()][1].z())
 
-            return "{:.2f}".format(self.vertices[index.row()][1].m())
+            context = QgsNumericFormatContext()
+            if index.column() == VertexModel.COLUMN_X:
+                return self.number_format.formatDouble(self.vertices[index.row()][1].x(), context)
+            if index.column() == VertexModel.COLUMN_Y:
+                return self.number_format.formatDouble(self.vertices[index.row()][1].y(), context)
+            if index.column() == VertexModel.COLUMN_Y + 1 and self.has_z:
+                return self.number_format.formatDouble(self.vertices[index.row()][1].z(), context)
+
+            return self.number_format.formatDouble(self.vertices[index.row()][1].m(), context)
 
         if role == VertexModel.VERTEX_NUMBER_ROLE:
             return index.row() + 1
@@ -133,3 +139,10 @@ class VertexModel(QAbstractTableModel):
 
                 return self.tr('M')
         return None
+
+    def number_format_changed(self):
+        """
+        Called when the predefined number format is changed, and we need to update everything
+        """
+        self.number_format = SettingsRegistry.number_format()
+        self.dataChanged.emit(self.index(0, 0), self.index(self.rowCount() - 1, self.columnCount() - 1))

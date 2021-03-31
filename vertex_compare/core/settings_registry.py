@@ -23,12 +23,15 @@ from qgis.PyQt.QtXml import (
     QDomDocument
 )
 from qgis.core import (
+    QgsApplication,
     QgsSettings,
     QgsSimpleMarkerSymbolLayer,
     QgsMarkerSymbol,
     QgsSymbolLayerUtils,
     QgsReadWriteContext,
-    QgsTextFormat
+    QgsTextFormat,
+    QgsNumericFormat,
+    QgsBasicNumericFormat
 )
 
 
@@ -43,6 +46,7 @@ class SettingsRegistry:
 
     VERTEX_SYMBOL = None
     VERTEX_FONT = None
+    NUMBER_FORMAT = None
 
     @staticmethod
     def label_filtering() -> int:
@@ -154,6 +158,50 @@ class SettingsRegistry:
 
         settings = QgsSettings()
         settings.setValue('vertex_compare/vertex_font', doc.toString(), QgsSettings.Plugins)
+
+    @staticmethod
+    def default_number_format() -> QgsNumericFormat:
+        """
+        Returns the default number format to use for coordinates
+        """
+        number_format = QgsBasicNumericFormat()
+        number_format.setNumberDecimalPlaces(10)
+        number_format.setShowThousandsSeparator(False)
+        return number_format
+
+    @staticmethod
+    def number_format() -> QgsNumericFormat:
+        """
+        Returns the default number format to use for coordinates
+        """
+        if SettingsRegistry.NUMBER_FORMAT is not None:
+            return SettingsRegistry.NUMBER_FORMAT
+
+        settings = QgsSettings()
+        format_doc = settings.value('vertex_compare/number_format', '', str, QgsSettings.Plugins)
+        if not format_doc:
+            SettingsRegistry.NUMBER_FORMAT = SettingsRegistry.default_number_format()
+        else:
+            doc = QDomDocument()
+            doc.setContent(format_doc)
+            SettingsRegistry.NUMBER_FORMAT = QgsApplication.numericFormatRegistry().createFromXml(doc.documentElement(), QgsReadWriteContext())
+
+        return SettingsRegistry.NUMBER_FORMAT.clone()
+
+    @staticmethod
+    def set_number_format(number_format: QgsNumericFormat):
+        """
+        Sets the number format to use for coordinates
+        """
+        SettingsRegistry.NUMBER_FORMAT = number_format.clone()
+
+        doc = QDomDocument()
+        elem = doc.createElement('format')
+        number_format.writeXml(elem, doc, QgsReadWriteContext())
+        doc.appendChild(elem)
+
+        settings = QgsSettings()
+        settings.setValue('vertex_compare/number_format', doc.toString(), QgsSettings.Plugins)
 
 
 SETTINGS_REGISTRY = SettingsRegistry()
