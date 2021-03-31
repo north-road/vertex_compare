@@ -13,6 +13,8 @@ __copyright__ = 'Copyright 2021, North Road'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from typing import Optional
+
 from qgis.PyQt.QtCore import (
     Qt
 )
@@ -47,13 +49,17 @@ class VertexHighlighterRendererGenerator(QgsFeatureRendererGenerator):
 
     ID = 'vertex_highlighter'
 
-    def __init__(self, layer: QgsVectorLayer):
+    def __init__(self, layer: QgsVectorLayer, feature_id: Optional[int], vertex_number: Optional[int]):
         """
         Creates a vertex highlighter for the specified layer type
+
+        Optional a selected feature_id and vertex_number can be specified.
         """
         super().__init__()
         self.layer = layer
         self.layer_type = layer.geometryType()
+        self.feature_id = feature_id
+        self.vertex_number = vertex_number
 
     def id(self):  # pylint: disable=missing-function-docstring
         return VertexHighlighterRendererGenerator.ID

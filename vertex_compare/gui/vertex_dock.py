@@ -98,8 +98,11 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
             prev_feature_id = None
 
         self.layer = layer
-        self.layer_label.setText(
-            self.tr('{} — {} features selected').format(layer.name(), layer.selectedFeatureCount()))
+        if self.layer is not None:
+            self.layer_label.setText(
+                self.tr('{} — {} features selected').format(layer.name(), layer.selectedFeatureCount()))
+        else:
+            self.layer_label.clear()
 
         self._block_feature_changes = True
 

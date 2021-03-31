@@ -15,6 +15,8 @@ __revision__ = '$Format:%H$'
 
 from typing import Optional
 
+from qgis.PyQt import sip
+
 from qgis.core import (
     QgsVectorLayer
 )
@@ -32,38 +34,32 @@ class VertexHighlighterManager:
 
         self.layer: Optional[QgsVectorLayer] = None
         self.visible = False
+        self.current_feature_id: Optional[int] = None
+        self.current_vertex_number: Optional[int] = None
 
     def __del__(self):
-        if self.layer is not None:
-            self.layer.removeFeatureRendererGenerator(VertexHighlighterRendererGenerator.ID)
-            self.layer.triggerRepaint()
+        self._remove_current_generator()
 
     def set_layer(self, layer: QgsVectorLayer):
         """
         Sets the active layer
         """
-        if self.layer is not None:
-            # this is safe to call even if a generator isn't installed!
-            self.layer.removeFeatureRendererGenerator(VertexHighlighterRendererGenerator.ID)
-            self.layer.triggerRepaint()
+        if layer == self.layer:
+            return
 
+        self._remove_current_generator()
         self.layer = layer
-        if self.layer is not None and self.visible:
-            self.layer.addFeatureRendererGenerator(VertexHighlighterRendererGenerator(self.layer))
-            self.layer.triggerRepaint()
+        self._reset_generator()
 
     def set_visible(self, visible: bool):
         """
         Sets whether the vertex highlights should be visible
         """
+        if self.visible == visible:
+            return
+
         self.visible = visible
-        if not self.visible and self.layer is not None:
-            # this is safe to call even if a generator isn't installed!
-            self.layer.removeFeatureRendererGenerator(VertexHighlighterRendererGenerator.ID)
-            self.layer.triggerRepaint()
-        elif self.visible and self.layer is not None:
-            self.layer.addFeatureRendererGenerator(VertexHighlighterRendererGenerator(self.layer))
-            self.layer.triggerRepaint()
+        self._reset_generator()
 
     def redraw(self):
         """
@@ -76,3 +72,27 @@ class VertexHighlighterManager:
         """
         Triggered when the selected vertex is changed
         """
+        if self.current_vertex_number == vertex_number and self.current_feature_id == feature_id:
+            return
+
+        self.current_feature_id = feature_id
+        self.current_vertex_number = vertex_number
+        self._reset_generator()
+
+    def _remove_current_generator(self):
+        """
+        Removes the generator from the current layer, if present
+        """
+        if self.layer is not None and not sip.isdeleted(self.layer):
+            self.layer.removeFeatureRendererGenerator(VertexHighlighterRendererGenerator.ID)
+            self.layer.triggerRepaint()
+
+    def _reset_generator(self):
+        """
+        Creates a new renderer generator for the correct layer
+        """
+        if not self.visible:
+            self._remove_current_generator()
+        elif self.layer is not None:
+            self.layer.addFeatureRendererGenerator(VertexHighlighterRendererGenerator(self.layer, self.current_feature_id, self.current_vertex_number))
+            self.layer.triggerRepaint()
