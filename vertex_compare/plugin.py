@@ -45,6 +45,7 @@ from qgis.gui import (
 from vertex_compare.core.vertex_highlighter_manager import VertexHighlighterManager
 from vertex_compare.gui.selection_handler import SelectionHandler
 from vertex_compare.gui.vertex_dock import VertexDockWidget
+from vertex_compare.gui.gui_utils import GuiUtils
 
 VERSION = '0.0.1'
 
@@ -126,6 +127,7 @@ class VertexComparePlugin(QObject):
         self.toolbar.addWidget(self.layer_combo)
 
         self.show_vertices_action = QAction(self.tr("Show Vertex Numbers"), self)
+        self.show_vertices_action.setIcon(GuiUtils.get_icon('show_vertex_numbers.svg'))
         self.show_vertices_action.setCheckable(True)
         self.show_vertices_action.setEnabled(False)
         self.actions.append(self.show_vertices_action)
@@ -133,12 +135,14 @@ class VertexComparePlugin(QObject):
         self.show_vertices_action.toggled.connect(self.vertex_highlighter.set_visible)
 
         self.show_topology_action = QAction(self.tr("Compare Vertices"), self)
+        self.show_topology_action.setIcon(GuiUtils.get_icon('topology.svg'))
         self.show_topology_action.setCheckable(True)
         self.actions.append(self.show_topology_action)
         self.toolbar.addAction(self.show_topology_action)
         self.show_topology_action.toggled.connect(self.vertex_highlighter.set_topological)
 
         self.show_dock_action = QAction(self.tr('Show Vertices'), parent=self.toolbar)
+        self.show_dock_action.setIcon(GuiUtils.get_icon('vertex_table.svg'))
         self.toolbar.addAction(self.show_dock_action)
         self.actions.append(self.show_dock_action)
         self.dock.setToggleVisibilityAction(self.show_dock_action)
