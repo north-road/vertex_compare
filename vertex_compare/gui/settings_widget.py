@@ -24,7 +24,8 @@ from qgis.core import (
     QgsSymbol
 )
 from qgis.gui import (
-    QgsPanelWidget
+    QgsPanelWidget,
+    QgsFontButton
 )
 
 from vertex_compare.core.settings_registry import SettingsRegistry
@@ -39,6 +40,7 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
     """
 
     vertex_symbol_changed = pyqtSignal()
+    vertex_text_format_changed = pyqtSignal()
     label_filter_changed = pyqtSignal()
 
     def __init__(self, parent: QWidget = None):
@@ -53,9 +55,11 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
         self.filtering_combo.addItem(self.tr('All Vertices'), SettingsRegistry.LABEL_ALL)
 
         self.point_symbol_button.setSymbolType(QgsSymbol.Marker)
+        self.vertex_font_button.setMode(QgsFontButton.ModeTextRenderer)
         self.restore_settings()
 
         self.point_symbol_button.changed.connect(self._point_symbol_changed)
+        self.vertex_font_button.changed.connect(self._vertex_format_changed)
         self.filtering_combo.currentIndexChanged[int].connect(self._label_filter_changed)
         self.button_reset_defaults.clicked.connect(self._reset_settings)
 
@@ -67,6 +71,7 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
         self.filtering_combo.setCurrentIndex(self.filtering_combo.findData(current_label_filter))
 
         self.point_symbol_button.setSymbol(SettingsRegistry.vertex_symbol())
+        self.vertex_font_button.setTextFormat(SettingsRegistry.vertex_format())
 
     def _reset_settings(self):
         """
@@ -74,7 +79,12 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
         """
         self.point_symbol_button.setSymbol(SettingsRegistry.default_vertex_symbol())
         SettingsRegistry.set_vertex_symbol(SettingsRegistry.default_vertex_symbol())
+
+        self.vertex_font_button.setTextFormat(SettingsRegistry.default_vertex_format())
+        SettingsRegistry.set_vertex_format(SettingsRegistry.default_vertex_format())
+
         self.vertex_symbol_changed.emit()
+        self.vertex_text_format_changed.emit()
 
     def _point_symbol_changed(self):
         """
@@ -82,6 +92,13 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
         """
         SettingsRegistry.set_vertex_symbol(self.point_symbol_button.symbol())
         self.vertex_symbol_changed.emit()
+
+    def _vertex_format_changed(self):
+        """
+        Called when the vertex text format is changed
+        """
+        SettingsRegistry.set_vertex_format(self.vertex_font_button.textFormat())
+        self.vertex_text_format_changed.emit()
 
     def _label_filter_changed(self, _: int):
         """

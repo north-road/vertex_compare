@@ -16,6 +16,9 @@ __revision__ = '$Format:%H$'
 from qgis.PyQt.QtCore import (
     Qt
 )
+from qgis.PyQt.QtGui import (
+    QColor
+)
 from qgis.PyQt.QtXml import (
     QDomDocument
 )
@@ -24,7 +27,8 @@ from qgis.core import (
     QgsSimpleMarkerSymbolLayer,
     QgsMarkerSymbol,
     QgsSymbolLayerUtils,
-    QgsReadWriteContext
+    QgsReadWriteContext,
+    QgsTextFormat
 )
 
 
@@ -104,6 +108,52 @@ class SettingsRegistry:
 
         settings = QgsSettings()
         settings.setValue('vertex_compare/marker_symbol', doc.toString(), QgsSettings.Plugins)
+
+    @staticmethod
+    def default_vertex_format() -> QgsTextFormat:
+        """
+        Returns the default text format to use for vertices
+        """
+        text_format = QgsTextFormat()
+        text_format.setSize(10)
+        text_format.setNamedStyle('Bold')
+        text_format.buffer().setEnabled(True)
+        text_format.buffer().setColor(QColor(255, 255, 255))
+        return text_format
+
+    @staticmethod
+    def vertex_format() -> QgsTextFormat:
+        """
+        Returns the text format to use for vertices
+        """
+        if SettingsRegistry.VERTEX_FONT is not None:
+            return SettingsRegistry.VERTEX_FONT
+
+        settings = QgsSettings()
+        format_doc = settings.value('vertex_compare/vertex_font', '', str, QgsSettings.Plugins)
+        if not format_doc:
+            SettingsRegistry.VERTEX_FONT = SettingsRegistry.default_vertex_format()
+        else:
+            doc = QDomDocument()
+            doc.setContent(format_doc)
+            SettingsRegistry.VERTEX_FONT = QgsTextFormat()
+            SettingsRegistry.VERTEX_FONT.readXml(doc.documentElement(), QgsReadWriteContext())
+
+        return QgsTextFormat(SettingsRegistry.VERTEX_FONT)
+
+    @staticmethod
+    def set_vertex_format(text_format: QgsTextFormat):
+        """
+        Sets the text format to use for vertices
+        """
+        SettingsRegistry.VERTEX_FONT = QgsTextFormat(text_format)
+
+        doc = QDomDocument()
+        elem = text_format.writeXml(doc, QgsReadWriteContext())
+        doc.appendChild(elem)
+
+        settings = QgsSettings()
+        settings.setValue('vertex_compare/vertex_font', doc.toString(), QgsSettings.Plugins)
 
 
 SETTINGS_REGISTRY = SettingsRegistry()

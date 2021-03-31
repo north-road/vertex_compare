@@ -139,6 +139,7 @@ class VertexComparePlugin(QObject):
         self.selection_handler.selection_changed.connect(self._selection_changed)
         self.dock.label_filter_changed.connect(self.vertex_highlighter.redraw)
         self.dock.vertex_symbol_changed.connect(self.vertex_highlighter.redraw)
+        self.dock.vertex_text_format_changed.connect(self.vertex_highlighter.redraw)
         self.dock.selected_vertex_changed.connect(self.vertex_highlighter.set_selected_vertex)
 
     def unload(self):

@@ -26,7 +26,6 @@ from qgis.core import (
     QgsMarkerSymbol,
     QgsSymbolLayer,
     QgsProperty,
-    QgsTextFormat,
     QgsWkbTypes,
     QgsLineSymbol,
     QgsFillSymbol
@@ -74,13 +73,7 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
 
         font_marker_symbol = QgsMarkerSymbol()
 
-        text_format = QgsTextFormat()
-        text_format.setColor(QColor(255, 0, 0))
-        text_format.setSize(10)
-        text_format.setNamedStyle('Bold')
-        text_format.buffer().setEnabled(True)
-        text_format.buffer().setColor(QColor(255, 255, 255))
-
+        text_format = SettingsRegistry.vertex_format()
         font_marker = TextRendererMarkerSymbolLayer(text_format, vertex_number)
 
         font_marker_symbol.changeSymbolLayer(0, font_marker)
