@@ -93,6 +93,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         self.button_zoom.clicked.connect(self._zoom_to_feature)
         self.table_view.selectionModel().selectionChanged.connect(self._vertex_selection_changed)
         self.table_view.doubleClicked.connect(self._table_double_click)
+        self.button_zoom.setEnabled(False)
 
     def set_selection(self, layer: QgsVectorLayer, selection: List[int]):
         """
@@ -147,18 +148,22 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
                     str(feature.geometry().constGet().numGeometries() if feature.geometry().isMultipart() else 1))
                 self.label_vertex_count.setText(str(feature.geometry().constGet().nCoordinates()))
                 self.label_geometry_type.setText(QgsWkbTypes.translatedDisplayString(feature.geometry().wkbType()))
+                self.button_zoom.setEnabled(True)
             else:
                 self.label_geometry_type.clear()
                 self.label_part_count.clear()
                 self.label_vertex_count.clear()
+                self.button_zoom.setEnabled(False)
 
             if changed and feature is not None:
                 self.map_canvas.flashGeometries([feature.geometry()], self.layer.crs())
+
         else:
             self.vertex_model.set_feature(None)
             self.label_geometry_type.clear()
             self.label_part_count.clear()
             self.label_vertex_count.clear()
+            self.button_zoom.setEnabled(False)
 
         self._vertex_selection_changed()
 
