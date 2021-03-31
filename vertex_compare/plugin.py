@@ -84,6 +84,7 @@ class VertexComparePlugin(QObject):
         self.vertex_highlighter = VertexHighlighterManager()
         self.selection_handler = SelectionHandler(self)
         self.show_vertices_action = None
+        self.show_topology_action = None
         self.show_dock_action = None
 
     @staticmethod
@@ -130,6 +131,12 @@ class VertexComparePlugin(QObject):
         self.actions.append(self.show_vertices_action)
         self.toolbar.addAction(self.show_vertices_action)
         self.show_vertices_action.toggled.connect(self.vertex_highlighter.set_visible)
+
+        self.show_topology_action = QAction(self.tr("Compare Vertices"), self)
+        self.show_topology_action.setCheckable(True)
+        self.actions.append(self.show_topology_action)
+        self.toolbar.addAction(self.show_topology_action)
+        self.show_topology_action.toggled.connect(self.vertex_highlighter.set_topological)
 
         self.show_dock_action = QAction(self.tr('Show Vertices'), parent=self.toolbar)
         self.toolbar.addAction(self.show_dock_action)

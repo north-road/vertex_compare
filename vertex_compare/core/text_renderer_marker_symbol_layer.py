@@ -39,6 +39,7 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         super().__init__()
         self.text_format = text_format
         self.vertex_id = 1
+        self.current_feature_id = None
         self.target_vertex = target_vertex
 
     def layerType(self) -> str:  # pylint: disable=missing-function-docstring
@@ -47,9 +48,11 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
     def startRender(self,  # pylint: disable=missing-function-docstring
                     context: QgsSymbolRenderContext):  # pylint: disable=unused-argument
         self.vertex_id = 1
+        self.current_feature_id = None
 
     def stopRender(self, context: QgsSymbolRenderContext):  # pylint: disable=missing-function-docstring,unused-argument
         self.vertex_id = 1
+        self.current_feature_id = None
 
     def usedAttributes(self, context: QgsRenderContext):  # pylint: disable=missing-function-docstring
         return self.text_format.referencedFields(context)
@@ -57,16 +60,20 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
     def setColor(self, color):  # pylint: disable=missing-function-docstring
         self.text_format.setColor(color)
 
-    def startFeatureRender(self,  # pylint: disable=missing-function-docstring
-                           feature: QgsFeature,
-                           context: QgsRenderContext):
-        self.vertex_id = 1
-        super().startFeatureRender(feature, context)
-
     def renderPoint(self,  # pylint: disable=missing-function-docstring
                     point: QPointF,
                     context: QgsSymbolRenderContext):
         if not context.renderContext().painter():
+            return
+
+        feature_id = context.feature().id()
+        if feature_id != self.current_feature_id:
+            self.current_feature_id = feature_id
+            self.vertex_id = 1
+
+        uncommon = context.renderContext().expressionContext().variable('uncommon_vertices')
+        if uncommon and self.vertex_id not in uncommon[feature_id]:
+            self.vertex_id += 1
             return
 
         if self.target_vertex is not None and self.target_vertex != self.vertex_id:

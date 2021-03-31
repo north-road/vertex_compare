@@ -13,7 +13,7 @@ __copyright__ = 'Copyright 2021, North Road'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from typing import Optional
+from typing import Optional, Dict, List
 
 from qgis.PyQt.QtGui import (
     QColor
@@ -28,7 +28,11 @@ from qgis.core import (
     QgsProperty,
     QgsWkbTypes,
     QgsLineSymbol,
-    QgsFillSymbol
+    QgsFillSymbol,
+    QgsGeometry,
+    QgsPointXY,
+    QgsVertexId,
+    QgsExpressionContextScope
 )
 
 from vertex_compare.core.settings_registry import SettingsRegistry
@@ -46,7 +50,11 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         QColor(0, 0, 255),
     ]
 
-    def __init__(self, layer_type: QgsWkbTypes.GeometryType, selection: list, vertex_number=Optional[int]):
+    def __init__(self,
+                 layer_type: QgsWkbTypes.GeometryType,
+                 selection: list,
+                 vertex_number=Optional[int],
+                 topological_geometries: Optional[Dict[int, QgsGeometry]] = None):
         if layer_type == QgsWkbTypes.LineGeometry:
             symbol = QgsLineSymbol()
         else:
@@ -88,12 +96,49 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         self.selection = sorted(selection)
         self.feature_index = 0
         self.vertex_number = vertex_number
+        self.topological_geometries = topological_geometries
+        self.expression_scope = QgsExpressionContextScope()
+
+    def calculate_topology(self) -> Dict[int, List[int]]:
+        """
+        Calculates the topological relationship between vertices
+        """
+        f1, f2 = self.topological_geometries.keys()
+        g1 = self.topological_geometries[f1]
+        g2 = self.topological_geometries[f2]
+
+        intersection = g1.intersection(g2)
+
+        common_vertices = set(QgsPointXY(p) for p in intersection.vertices())
+
+        def _get_uncommon_vertices(_common_vertices, geometry: QgsGeometry):
+            res = []
+
+            const_geom = geometry.constGet()
+            vid = QgsVertexId()
+            while True:
+                ok, vertex = const_geom.nextVertex(vid)
+                if ok:
+                    if not QgsPointXY(vertex) in _common_vertices:
+                        res.append(QgsVertexId(vid).vertex + 1)
+                else:
+                    break
+
+            return res
+
+        return {f1: _get_uncommon_vertices(common_vertices, g1),
+                f2: _get_uncommon_vertices(common_vertices, g2)}
 
     def filter(self, _=QgsFields()) -> str:  # pylint: disable=missing-function-docstring
         return f'$id in ({",".join([str(i) for i in self.selection])})'
 
     def startRender(self, context: QgsRenderContext, fields: QgsFields):  # pylint: disable=missing-function-docstring
         self.feature_index = 0
+
+        if self.topological_geometries:
+            self.expression_scope.setVariable('uncommon_vertices', self.calculate_topology())
+            context.expressionContext().appendScope(self.expression_scope)
+
         super().startRender(context, fields)
 
     def renderFeature(self,  # pylint: disable=missing-function-docstring

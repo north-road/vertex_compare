@@ -36,6 +36,7 @@ class VertexHighlighterManager:
         self.visible = False
         self.current_feature_id: Optional[int] = None
         self.current_vertex_number: Optional[int] = None
+        self.topological = False
 
     def __del__(self):
         self._remove_current_generator()
@@ -61,6 +62,14 @@ class VertexHighlighterManager:
         self.visible = visible
         self._reset_generator()
 
+    def set_topological(self, topological: bool):
+        """
+        Sets whether the topological mode is active
+        """
+        self.topological = topological
+        self._remove_current_generator()
+        self._reset_generator()
+
     def redraw(self):
         """
         Forces a redraw of the current layer being highlighted
@@ -76,7 +85,8 @@ class VertexHighlighterManager:
             return
 
         needs_redraw = SettingsRegistry.label_filtering() == SettingsRegistry.LABEL_SELECTED or \
-                       (SettingsRegistry.label_filtering() == SettingsRegistry.LABEL_ALL and feature_id != self.current_feature_id)
+                       (
+                                   SettingsRegistry.label_filtering() == SettingsRegistry.LABEL_ALL and feature_id != self.current_feature_id)
 
         self.current_feature_id = feature_id
         self.current_vertex_number = vertex_number
@@ -99,8 +109,9 @@ class VertexHighlighterManager:
             self._remove_current_generator()
         elif self.layer is not None:
             self.layer.addFeatureRendererGenerator(
-                VertexHighlighterRendererGenerator(self.layer,
-                                                   self.current_feature_id,
-                                                   self.current_vertex_number))
+                VertexHighlighterRendererGenerator(layer=self.layer,
+                                                   feature_id=self.current_feature_id,
+                                                   vertex_number=self.current_vertex_number,
+                                                   topological=self.topological))
             if not skip_redraw:
                 self.layer.triggerRepaint()

@@ -19,7 +19,8 @@ from qgis.core import (
     QgsFeatureRendererGenerator,
     QgsSingleSymbolRenderer,
     QgsVectorLayer,
-    QgsNullSymbolRenderer
+    QgsNullSymbolRenderer,
+    QgsFeatureRequest
 )
 
 from vertex_compare.core.settings_registry import SettingsRegistry
@@ -33,7 +34,11 @@ class VertexHighlighterRendererGenerator(QgsFeatureRendererGenerator):
 
     ID = 'vertex_highlighter'
 
-    def __init__(self, layer: QgsVectorLayer, feature_id: Optional[int], vertex_number: Optional[int]):
+    def __init__(self,
+                 layer: QgsVectorLayer,
+                 feature_id: Optional[int],
+                 vertex_number: Optional[int],
+                 topological: bool):
         """
         Creates a vertex highlighter for the specified layer type
 
@@ -44,6 +49,7 @@ class VertexHighlighterRendererGenerator(QgsFeatureRendererGenerator):
         self.layer_type = layer.geometryType()
         self.feature_id = feature_id
         self.vertex_number = vertex_number
+        self.topological = topological
 
     def id(self):  # pylint: disable=missing-function-docstring
         return VertexHighlighterRendererGenerator.ID
@@ -53,6 +59,8 @@ class VertexHighlighterRendererGenerator(QgsFeatureRendererGenerator):
 
     def createRenderer(self) -> QgsSingleSymbolRenderer:  # pylint: disable=missing-function-docstring
         filtering = SettingsRegistry.label_filtering()
+
+        topological = self.topological and self.layer.selectedFeatureCount() == 2
 
         if filtering == SettingsRegistry.LABEL_NONE:
             return QgsNullSymbolRenderer()
@@ -66,4 +74,13 @@ class VertexHighlighterRendererGenerator(QgsFeatureRendererGenerator):
             selection = self.layer.selectedFeatureIds()
             vertex_number = None
 
-        return VertexHighlighterRenderer(self.layer_type, selection, vertex_number)
+        if topological:
+            request = QgsFeatureRequest().setFilterFids(self.layer.selectedFeatureIds()).setNoAttributes()
+            topological_geometries = {f.id(): f.geometry() for f in self.layer.getFeatures(request)}
+        else:
+            topological_geometries = None
+
+        return VertexHighlighterRenderer(layer_type=self.layer_type,
+                                         selection=selection,
+                                         vertex_number=vertex_number,
+                                         topological_geometries=topological_geometries)
