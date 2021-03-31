@@ -13,7 +13,7 @@ __copyright__ = 'Copyright 2021, North Road'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 from qgis.PyQt.QtCore import (
     QPointF,
@@ -39,18 +39,29 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         self.text_format = text_format
         self.vertex_id = 1
         self.current_feature_id = None
+        self.current_part_number = None
         self.target_vertex = target_vertex
         self.marker_symbol = None
         self.uncommon_vertices = {}
+        self.geometry_part_count = {}
 
     def layerType(self) -> str:  # pylint: disable=missing-function-docstring
         return 'TextRenderer'
+
+    def hasDataDefinedProperties(self):
+        return True
 
     def set_uncommon_vertices(self, vertices: Dict):
         """
         Sets the dictionary of uncommon vertices between two selected geometries
         """
         self.uncommon_vertices = vertices
+
+    def set_geometry_part_map(self, part_map: Dict[int, List[int]]):
+        """
+        Sets a map of feature id to geometry part counts from the original geometries
+        """
+        self.geometry_part_count = part_map
 
     def setSubSymbol(self, symbol):  # pylint: disable=missing-function-docstring
         self.marker_symbol = symbol
@@ -62,25 +73,29 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
     def startFeatureRender(self, feature, context):
         self.vertex_id = 1
         self.current_feature_id = feature.id()
-        if self.subSymbol():
-            self.subSymbol().startFeatureRender(feature, context)
+        self.current_part_number = None
+       # if self.subSymbol():
+        #    self.subSymbol().startFeatureRender(feature, context)
 
     def stopFeatureRender(self, feature, context):
         self.vertex_id = 1
         self.current_feature_id = None
-        if self.subSymbol():
-            self.subSymbol().stopFeatureRender(feature, context)
+        self.current_part_number = None
+        #if self.subSymbol():
+        #    self.subSymbol().stopFeatureRender(feature, context)
 
     def startRender(self,  # pylint: disable=missing-function-docstring
                     context: QgsSymbolRenderContext):  # pylint: disable=unused-argument
         self.vertex_id = 1
         self.current_feature_id = None
+        self.current_part_number = None
         if self.subSymbol():
             self.subSymbol().startRender(context.renderContext(), context.fields())
 
     def stopRender(self, context: QgsSymbolRenderContext):  # pylint: disable=missing-function-docstring,unused-argument
         self.vertex_id = 1
         self.current_feature_id = None
+        self.current_part_number = None
         if self.subSymbol():
             self.subSymbol().stopRender(context.renderContext())
 
@@ -101,14 +116,22 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         feature_id = context.feature().id()
 
         part_num = context.renderContext().expressionContext().variable('geometry_part_num')
-        if part_num:
-            print(part_num)
+        if part_num != self.current_part_number:
+            self.vertex_id = 1
+            self.current_part_number = part_num
 
-        if feature_id in self.uncommon_vertices and self.vertex_id not in self.uncommon_vertices[feature_id]:
+        if feature_id in self.geometry_part_count:
+            part_counts = self.geometry_part_count[feature_id]
+            offset_for_part = sum(part_counts[:part_num-1])
+        else:
+            offset_for_part = 0
+        current_vertex_id = self.vertex_id + offset_for_part
+
+        if feature_id in self.uncommon_vertices and current_vertex_id not in self.uncommon_vertices[feature_id]:
             self.vertex_id += 1
             return
 
-        if self.target_vertex is not None and self.target_vertex != self.vertex_id:
+        if self.target_vertex is not None and self.target_vertex != current_vertex_id:
             self.vertex_id += 1
             return
 
@@ -126,7 +149,7 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         render_point = QPointF(point.x() + offset, point.y() - offset)
 
         QgsTextRenderer.drawText(render_point, 0, QgsTextRenderer.AlignLeft,
-                                 [str(self.vertex_id)], context.renderContext(), self.text_format)
+                                 [str(current_vertex_id)], context.renderContext(), self.text_format)
         self.vertex_id += 1
 
     def clone(self):  # pylint: disable=missing-function-docstring

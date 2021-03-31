@@ -20,7 +20,8 @@ from qgis.core import (
     QgsSingleSymbolRenderer,
     QgsVectorLayer,
     QgsNullSymbolRenderer,
-    QgsFeatureRequest
+    QgsFeatureRequest,
+    QgsVectorLayerFeatureSource
 )
 
 from vertex_compare.core.settings_registry import SettingsRegistry
@@ -80,7 +81,11 @@ class VertexHighlighterRendererGenerator(QgsFeatureRendererGenerator):
         else:
             topological_geometries = None
 
-        return VertexHighlighterRenderer(layer_type=self.layer_type,
+        layer_source = QgsVectorLayerFeatureSource(self.layer)
+
+        return VertexHighlighterRenderer(source=layer_source,
+                                         layer_type=self.layer_type,
                                          selection=selection,
                                          vertex_number=vertex_number,
-                                         topological_geometries=topological_geometries)
+                                         topological_geometries=topological_geometries,
+                                         )

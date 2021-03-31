@@ -31,7 +31,9 @@ from qgis.core import (
     QgsFillSymbol,
     QgsGeometry,
     QgsPointXY,
-    QgsVertexId
+    QgsVertexId,
+    QgsFeatureSource,
+    QgsFeatureRequest
 )
 
 from vertex_compare.core.settings_registry import SettingsRegistry
@@ -50,6 +52,7 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
     ]
 
     def __init__(self,
+                 source: QgsFeatureSource,
                  layer_type: QgsWkbTypes.GeometryType,
                  selection: list,
                  vertex_number=Optional[int],
@@ -86,6 +89,8 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         self.selection = sorted(selection)
         self.feature_index = 0
         self.vertex_number = vertex_number
+        self.source = source
+
         self.topological_geometries = topological_geometries
 
     def calculate_topology(self) -> Dict[int, List[int]]:
@@ -122,6 +127,18 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         return f'$id in ({",".join([str(i) for i in self.selection])})'
 
     def startRender(self, context: QgsRenderContext, fields: QgsFields):  # pylint: disable=missing-function-docstring
+        # we are in a background thread now - we can do more costly things!
+
+        # we need a record of the number of vertices in each geometry part
+        selected_features = self.source.getFeatures(QgsFeatureRequest().setFilterFids(self.selection).setNoAttributes())
+        geometry_part_map = {}
+        for f in selected_features:
+            if f.geometry().isMultipart():
+                geometry_part_map[f.id()] = []
+                for part in f.geometry().constParts():
+                    geometry_part_map[f.id()].append(part.nCoordinates())
+
+        self.symbol()[0].subSymbol()[0].set_geometry_part_map(geometry_part_map)
         self.feature_index = 0
 
         if self.topological_geometries:
