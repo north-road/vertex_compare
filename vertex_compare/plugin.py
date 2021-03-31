@@ -137,6 +137,7 @@ class VertexComparePlugin(QObject):
         self.dock.setToggleVisibilityAction(self.show_dock_action)
 
         self.selection_handler.selection_changed.connect(self._selection_changed)
+        self.dock.label_filter_changed.connect(self.vertex_highlighter.redraw)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""

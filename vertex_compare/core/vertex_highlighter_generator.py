@@ -31,9 +31,11 @@ from qgis.core import (
     QgsSymbolLayer,
     QgsProperty,
     QgsSimpleMarkerSymbolLayer,
-    QgsTextFormat
+    QgsTextFormat,
+    QgsNullSymbolRenderer
 )
 
+from vertex_compare.core.settings_registry import SettingsRegistry
 from vertex_compare.core.text_renderer_marker_symbol_layer import TextRendererMarkerSymbolLayer
 from vertex_compare.core.vertex_highlighter_renderer import VertexHighlighterRenderer
 
@@ -60,6 +62,9 @@ class VertexHighlighterRendererGenerator(QgsFeatureRendererGenerator):
         return 1
 
     def createRenderer(self) -> QgsSingleSymbolRenderer:  # pylint: disable=missing-function-docstring
+        if SettingsRegistry.label_filtering() == SettingsRegistry.LABEL_NONE:
+            return QgsNullSymbolRenderer()
+
         selection = self.layer.selectedFeatureIds()
 
         marker_line = QgsMarkerLineSymbolLayer()

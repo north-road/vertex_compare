@@ -19,6 +19,7 @@ from typing import (
 )
 
 from qgis.PyQt import uic
+from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -51,6 +52,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
     """
     A table for vertex lists
     """
+    label_filter_changed = pyqtSignal()
 
     def __init__(self, map_canvas: QgsMapCanvas, parent: QWidget = None):
         super().__init__(parent)
@@ -150,6 +152,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         """
         self.settings_panel = SettingsWidget()
         self.settings_panel.panelAccepted.connect(self._update_settings)
+        self.settings_panel.label_filter_changed.connect(self.label_filter_changed)
         self.openPanel(self.settings_panel)
 
     def _update_settings(self):
@@ -181,6 +184,7 @@ class VertexDockWidget(QgsDockWidget):
     """
     A dock widget container for plugin GUI components
     """
+    label_filter_changed = pyqtSignal()
 
     def __init__(self, map_canvas: QgsMapCanvas, parent=None):
         super().__init__(parent)
@@ -202,6 +206,8 @@ class VertexDockWidget(QgsDockWidget):
         self.table_widget = VertexListWidget(map_canvas)
         self.table_widget.setDockMode(True)
         self.stack.setMainPanel(self.table_widget)
+
+        self.table_widget.label_filter_changed.connect(self.label_filter_changed)
 
     def set_selection(self, layer: QgsVectorLayer, selection: List[int]):
         """

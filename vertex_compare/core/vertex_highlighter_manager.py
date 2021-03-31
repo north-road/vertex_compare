@@ -65,3 +65,10 @@ class VertexHighlighterManager:
             self.layer.addFeatureRendererGenerator(VertexHighlighterRendererGenerator(self.layer))
             self.layer.triggerRepaint()
 
+    def redraw(self):
+        """
+        Forces a redraw of the current layer being highlighted
+        """
+        if self.visible and self.layer is not None:
+            self.layer.triggerRepaint()
+
