@@ -76,4 +76,3 @@ class VertexHighlighterManager:
         """
         Triggered when the selected vertex is changed
         """
-

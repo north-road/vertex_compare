@@ -26,8 +26,6 @@ from qgis.PyQt.QtCore import (
 )
 from qgis.core import (
     QgsFeature,
-    QgsVertexId,
-    QgsPoint,
     QgsVectorLayer,
     QgsFeatureRequest,
     QgsExpression,
@@ -74,7 +72,7 @@ class FeatureModel(QAbstractItemModel):
         request = QgsFeatureRequest().setFilterFids(fids)
         request.setSubsetOfAttributes(display_expression.referencedColumns(), layer.fields())
 
-        pending_features = [f for f in layer.getFeatures(request)]
+        pending_features = list(layer.getFeatures(request))
 
         self.beginInsertRows(QModelIndex(), 0, len(pending_features))
         self.features = pending_features
@@ -85,10 +83,14 @@ class FeatureModel(QAbstractItemModel):
 
         self.endInsertRows()
 
-    def index(self, row: int, column: int, parent: QModelIndex = QModelIndex()):
+    def index(self,  # pylint: disable=missing-function-docstring
+              row: int,
+              column: int,
+              parent: QModelIndex = QModelIndex()):  # pylint: disable=unused-argument
         return self.createIndex(row, column, None)
 
-    def parent(self, child: QModelIndex) -> QModelIndex:
+    def parent(self,  # pylint: disable=missing-function-docstring
+               child: QModelIndex) -> QModelIndex:  # pylint: disable=unused-argument
         return QModelIndex()
 
     def rowCount(self,  # pylint: disable=missing-function-docstring
@@ -126,5 +128,5 @@ class FeatureModel(QAbstractItemModel):
         """
         for i in range(self.rowCount()):
             if self.data(self.index(i, 0), FeatureModel.FEATURE_ID_ROLE) == fid:
-                return self.index(i,0)
+                return self.index(i, 0)
         return QModelIndex()

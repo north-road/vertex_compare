@@ -116,7 +116,10 @@ class VertexModel(QAbstractTableModel):
 
         return None
 
-    def headerData(self, section: int, orientation: Qt.Orientation, role: int):
+    def headerData(self,  # pylint: disable=missing-function-docstring
+                   section: int,
+                   orientation: Qt.Orientation,
+                   role: int):
         if orientation == Qt.Horizontal:
             if role in (Qt.DisplayRole, Qt.ToolTipRole):
                 if section == VertexModel.COLUMN_ID:

@@ -48,7 +48,7 @@ class SelectionHandler(QObject):
         if self.layer == layer:
             return
 
-        if self.layer is not None and not sip.isdeleted(self.layer):
+        if self.layer is not None and not sip.isdeleted(self.layer):  # pylint: disable=no-member
             self.layer.selectionChanged.disconnect(self._selection_changed)
 
         self.layer = layer

@@ -54,7 +54,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
     A table for vertex lists
     """
     label_filter_changed = pyqtSignal()
-    selected_vertex_changed = pyqtSignal(int,object)
+    selected_vertex_changed = pyqtSignal(int, object)
 
     def __init__(self, map_canvas: QgsMapCanvas, parent: QWidget = None):
         super().__init__(parent)
@@ -203,13 +203,12 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         self.selected_vertex_changed.emit(feature_id, vertex_number)
 
 
-
 class VertexDockWidget(QgsDockWidget):
     """
     A dock widget container for plugin GUI components
     """
     label_filter_changed = pyqtSignal()
-    selected_vertex_changed = pyqtSignal(int,object)
+    selected_vertex_changed = pyqtSignal(int, object)
 
     def __init__(self, map_canvas: QgsMapCanvas, parent=None):
         super().__init__(parent)
