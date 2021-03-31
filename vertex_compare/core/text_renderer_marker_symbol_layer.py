@@ -59,6 +59,18 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
     def subSymbol(self):  # pylint: disable=missing-function-docstring
         return self.marker_symbol
 
+    def startFeatureRender(self, feature, context):
+        self.vertex_id = 1
+        self.current_feature_id = feature.id()
+        if self.subSymbol():
+            self.subSymbol().startFeatureRender(feature, context)
+
+    def stopFeatureRender(self, feature, context):
+        self.vertex_id = 1
+        self.current_feature_id = None
+        if self.subSymbol():
+            self.subSymbol().stopFeatureRender(feature, context)
+
     def startRender(self,  # pylint: disable=missing-function-docstring
                     context: QgsSymbolRenderContext):  # pylint: disable=unused-argument
         self.vertex_id = 1
@@ -87,9 +99,10 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
             return
 
         feature_id = context.feature().id()
-        if feature_id != self.current_feature_id:
-            self.current_feature_id = feature_id
-            self.vertex_id = 1
+
+        part_num = context.renderContext().expressionContext().variable('geometry_part_num')
+        if part_num:
+            print(part_num)
 
         if feature_id in self.uncommon_vertices and self.vertex_id not in self.uncommon_vertices[feature_id]:
             self.vertex_id += 1
