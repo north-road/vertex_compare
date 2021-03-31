@@ -47,13 +47,16 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         return 'TextRenderer'
 
     def set_uncommon_vertices(self, vertices: Dict):
+        """
+        Sets the dictionary of uncommon vertices between two selected geometries
+        """
         self.uncommon_vertices = vertices
 
-    def setSubSymbol(self, symbol):
+    def setSubSymbol(self, symbol):  # pylint: disable=missing-function-docstring
         self.marker_symbol = symbol
         return True
 
-    def subSymbol(self):
+    def subSymbol(self):  # pylint: disable=missing-function-docstring
         return self.marker_symbol
 
     def startRender(self,  # pylint: disable=missing-function-docstring
