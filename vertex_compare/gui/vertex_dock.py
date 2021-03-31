@@ -80,8 +80,6 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         self.feature_combo.setModel(self.feature_model)
         self.feature_combo.currentIndexChanged.connect(self._active_feature_changed)
 
-        self.toolbar.addSeparator()
-
         self.settings_action = QAction(self.tr('Settings'), self)
         self.settings_action.setIcon(QgsApplication.getThemeIcon('/propertyicons/settings.svg'))
         self.settings_action.triggered.connect(self._show_settings)
