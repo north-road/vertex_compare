@@ -40,6 +40,7 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         self.vertex_id = 1
         self.current_feature_id = None
         self.current_part_number = None
+        self.current_ring_number = None
         self.target_vertex = target_vertex
         self.marker_symbol = None
         self.uncommon_vertices = {}
@@ -74,21 +75,24 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         self.vertex_id = 1
         self.current_feature_id = feature.id()
         self.current_part_number = None
-       # if self.subSymbol():
-        #    self.subSymbol().startFeatureRender(feature, context)
+        self.current_ring_number = None
+        if self.subSymbol():
+            self.subSymbol().startFeatureRender(feature, context)
 
     def stopFeatureRender(self, feature, context):
         self.vertex_id = 1
         self.current_feature_id = None
         self.current_part_number = None
-        #if self.subSymbol():
-        #    self.subSymbol().stopFeatureRender(feature, context)
+        self.current_ring_number = None
+        if self.subSymbol():
+            self.subSymbol().stopFeatureRender(feature, context)
 
     def startRender(self,  # pylint: disable=missing-function-docstring
                     context: QgsSymbolRenderContext):  # pylint: disable=unused-argument
         self.vertex_id = 1
         self.current_feature_id = None
         self.current_part_number = None
+        self.current_ring_number = None
         if self.subSymbol():
             self.subSymbol().startRender(context.renderContext(), context.fields())
 
@@ -96,6 +100,7 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         self.vertex_id = 1
         self.current_feature_id = None
         self.current_part_number = None
+        self.current_ring_number = None
         if self.subSymbol():
             self.subSymbol().stopRender(context.renderContext())
 
@@ -119,6 +124,12 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         if part_num != self.current_part_number:
             self.vertex_id = 1
             self.current_part_number = part_num
+
+        ring_num = context.renderContext().expressionContext().variable('geometry_ring_num')
+        if ring_num and ring_num != self.current_ring_number:
+            # account for qgis not rendering the last point in closed rings
+            self.vertex_id += 1
+            self.current_ring_number = ring_num
 
         if feature_id in self.geometry_part_count:
             part_counts = self.geometry_part_count[feature_id]
