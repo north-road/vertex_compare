@@ -87,7 +87,7 @@ class VertexHighlighterManager:
         """
         Removes the generator from the current layer, if present
         """
-        if self.layer is not None and not sip.isdeleted(self.layer):
+        if self.layer is not None and not sip.isdeleted(self.layer):  # pylint: disable=no-member
             self.layer.removeFeatureRendererGenerator(VertexHighlighterRendererGenerator.ID)
             self.layer.triggerRepaint()
 

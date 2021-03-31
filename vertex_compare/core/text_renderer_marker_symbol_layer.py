@@ -70,7 +70,7 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
             return
 
         if self.target_vertex is not None and self.target_vertex != self.vertex_id:
-            self.vertex_id +=1
+            self.vertex_id += 1
             return
 
         map_point = context.renderContext().mapToPixel().toMapPoint(point.x(), point.y())

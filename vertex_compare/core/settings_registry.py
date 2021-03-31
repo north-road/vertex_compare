@@ -21,15 +21,10 @@ from qgis.PyQt.QtXml import (
 )
 from qgis.core import (
     QgsSettings,
-    QgsLineSymbol,
-    QgsSimpleLineSymbolLayer,
-    QgsMarkerLineSymbolLayer,
     QgsSimpleMarkerSymbolLayer,
     QgsMarkerSymbol,
     QgsSymbolLayerUtils,
-    QgsReadWriteContext,
-    QgsFillSymbol,
-    QgsSimpleFillSymbolLayer
+    QgsReadWriteContext
 )
 
 
@@ -91,7 +86,8 @@ class SettingsRegistry:
         else:
             doc = QDomDocument()
             doc.setContent(symbol_doc)
-            SettingsRegistry.VERTEX_SYMBOL = QgsSymbolLayerUtils.loadSymbol(doc.documentElement(), QgsReadWriteContext())
+            SettingsRegistry.VERTEX_SYMBOL = QgsSymbolLayerUtils.loadSymbol(doc.documentElement(),
+                                                                            QgsReadWriteContext())
 
         return SettingsRegistry.VERTEX_SYMBOL.clone()
 
