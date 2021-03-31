@@ -16,11 +16,11 @@ __revision__ = '$Format:%H$'
 from typing import Optional
 
 from qgis.PyQt import sip
-
 from qgis.core import (
     QgsVectorLayer
 )
 
+from vertex_compare.core.settings_registry import SettingsRegistry
 from vertex_compare.core.vertex_highlighter_generator import VertexHighlighterRendererGenerator
 
 
@@ -75,9 +75,12 @@ class VertexHighlighterManager:
         if self.current_vertex_number == vertex_number and self.current_feature_id == feature_id:
             return
 
+        needs_redraw = SettingsRegistry.label_filtering() == SettingsRegistry.LABEL_SELECTED or \
+                       (SettingsRegistry.label_filtering() == SettingsRegistry.LABEL_ALL and feature_id != self.current_feature_id)
+
         self.current_feature_id = feature_id
         self.current_vertex_number = vertex_number
-        self._reset_generator()
+        self._reset_generator(not needs_redraw)
 
     def _remove_current_generator(self):
         """
@@ -87,12 +90,16 @@ class VertexHighlighterManager:
             self.layer.removeFeatureRendererGenerator(VertexHighlighterRendererGenerator.ID)
             self.layer.triggerRepaint()
 
-    def _reset_generator(self):
+    def _reset_generator(self, skip_redraw: bool = False):
         """
         Creates a new renderer generator for the correct layer
         """
         if not self.visible:
             self._remove_current_generator()
         elif self.layer is not None:
-            self.layer.addFeatureRendererGenerator(VertexHighlighterRendererGenerator(self.layer, self.current_feature_id, self.current_vertex_number))
-            self.layer.triggerRepaint()
+            self.layer.addFeatureRendererGenerator(
+                VertexHighlighterRendererGenerator(self.layer,
+                                                   self.current_feature_id,
+                                                   self.current_vertex_number))
+            if not skip_redraw:
+                self.layer.triggerRepaint()

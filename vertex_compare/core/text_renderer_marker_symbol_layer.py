@@ -66,6 +66,12 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         if not context.renderContext().painter():
             return
 
+        map_point = context.renderContext().mapToPixel().toMapPoint(point.x(), point.y())
+        if not context.renderContext().mapExtent().contains(map_point):
+            # don't render points out of view
+            self.vertex_id += 1
+            return
+
         # offset point a little
         offset = context.renderContext().convertToPainterUnits(1, QgsUnitTypes.RenderMillimeters)
         render_point = QPointF(point.x() + offset, point.y() - offset)
