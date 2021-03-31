@@ -42,6 +42,7 @@ from qgis.gui import (
 from vertex_compare.core.feature_model import FeatureModel
 from vertex_compare.core.vertex_model import VertexModel
 from vertex_compare.gui.gui_utils import GuiUtils
+from vertex_compare.gui.settings_widget import SettingsWidget
 
 WIDGET, _ = uic.loadUiType(GuiUtils.get_ui_file_path('vertex_list.ui'))
 
@@ -126,7 +127,8 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
             self.vertex_model.set_feature(feature)
 
             if feature is not None:
-                self.label_part_count.setText(str(feature.geometry().constGet().numGeometries() if feature.geometry().isMultipart() else 1))
+                self.label_part_count.setText(
+                    str(feature.geometry().constGet().numGeometries() if feature.geometry().isMultipart() else 1))
                 self.label_vertex_count.setText(str(feature.geometry().constGet().nCoordinates()))
                 self.label_geometry_type.setText(QgsWkbTypes.translatedDisplayString(feature.geometry().wkbType()))
             else:
@@ -173,29 +175,6 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
                 self.map_canvas.flashGeometries([feature.geometry()], self.layer.crs())
             except QgsCsException:
                 pass
-
-
-SETTINGS_WIDGET, _ = uic.loadUiType(GuiUtils.get_ui_file_path('settings.ui'))
-
-
-class SettingsWidget(QgsPanelWidget, SETTINGS_WIDGET):
-    """
-    Settings configuration widget
-    """
-
-    def __init__(self, parent: QWidget = None):
-        super().__init__(parent)
-
-        self.setupUi(self)
-
-        self.setPanelTitle(self.tr('Settings'))
-
-        self.restore_settings()
-
-    def restore_settings(self):
-        """
-        Restores saved settings
-        """
 
 
 class VertexDockWidget(QgsDockWidget):
