@@ -101,9 +101,10 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         g1 = self.topological_geometries[f1]
         g2 = self.topological_geometries[f2]
 
-        intersection = g1.intersection(g2)
+        g1_points = set(v.asPoint() for v in g1.coerceToType(QgsWkbTypes.Point))
+        g2_points = set(v.asPoint() for v in g2.coerceToType(QgsWkbTypes.Point))
 
-        common_vertices = set(QgsPointXY(p) for p in intersection.vertices())
+        common_vertices = g1_points.intersection(g2_points)
 
         def _get_uncommon_vertices(_common_vertices, geometry: QgsGeometry):
             res = []
