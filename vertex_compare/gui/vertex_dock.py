@@ -36,7 +36,8 @@ from qgis.core import (
     QgsProject,
     QgsCsException,
     QgsWkbTypes,
-    QgsPointXY
+    QgsPointXY,
+    QgsGeometry
 )
 from qgis.gui import (
     QgsPanelWidget,
@@ -208,12 +209,15 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
             if selected_index.isValid():
                 vertex_number = self.vertex_model.data(selected_index, VertexModel.VERTEX_NUMBER_ROLE)
 
-                if SettingsRegistry.center_on_selected():
-                    point = self.vertex_model.data(selected_index, VertexModel.VERTEX_POINT_ROLE)
+                point = self.vertex_model.data(selected_index, VertexModel.VERTEX_POINT_ROLE)
+                map_point = self.map_canvas.mapSettings().layerToMapCoordinates(self.layer, point)
 
-                    map_point = self.map_canvas.mapSettings().layerToMapCoordinates(self.layer, point)
+                if SettingsRegistry.center_on_selected():
                     self.map_canvas.setCenter(QgsPointXY(map_point))
                     self.map_canvas.refresh()
+
+                geom = QgsGeometry(map_point)
+                self.map_canvas.flashGeometries([geom])
 
         feature_id = None
         if self.vertex_model.feature is not None:
