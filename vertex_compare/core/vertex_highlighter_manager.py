@@ -80,6 +80,7 @@ class VertexHighlighterManager:
 
         self.current_feature_id = feature_id
         self.current_vertex_number = vertex_number
+        self._remove_current_generator()
         self._reset_generator(not needs_redraw)
 
     def _remove_current_generator(self):

@@ -13,15 +13,30 @@ __copyright__ = 'Copyright 2021, North Road'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from typing import Optional
+
+from qgis.PyQt.QtCore import (
+    Qt
+)
 from qgis.PyQt.QtGui import (
     QColor
 )
 from qgis.core import (
     QgsSingleSymbolRenderer,
-    QgsSymbol,
     QgsFields,
-    QgsRenderContext
+    QgsRenderContext,
+    QgsMarkerLineSymbolLayer,
+    QgsMarkerSymbol,
+    QgsSimpleMarkerSymbolLayer,
+    QgsSymbolLayer,
+    QgsProperty,
+    QgsTextFormat,
+    QgsWkbTypes,
+    QgsLineSymbol,
+    QgsFillSymbol
 )
+
+from vertex_compare.core.text_renderer_marker_symbol_layer import TextRendererMarkerSymbolLayer
 
 
 class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
@@ -35,10 +50,46 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         QColor(0, 0, 255),
     ]
 
-    def __init__(self, symbol: QgsSymbol, selection: list):
+    def __init__(self, layer_type: QgsWkbTypes.GeometryType, selection: list, vertex_number=Optional[int]):
+        marker_line = QgsMarkerLineSymbolLayer()
+        marker_line.setRotateMarker(False)
+        marker_line.setPlacement(QgsMarkerLineSymbolLayer.Vertex)
+
+        vertex_marker_symbol = QgsMarkerSymbol()
+
+        simple_marker = QgsSimpleMarkerSymbolLayer(QgsSimpleMarkerSymbolLayer.Circle)
+        simple_marker.setSize(1)
+        simple_marker.setStrokeStyle(Qt.NoPen)
+        # not so nice, but required to allow us to dynamically change this color mid-way through rendering
+        simple_marker.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, QgsProperty.fromValue(None))
+        vertex_marker_symbol.changeSymbolLayer(0, simple_marker)
+
+        text_format = QgsTextFormat()
+        text_format.setColor(QColor(255, 0, 0))
+        text_format.setSize(10)
+        text_format.setNamedStyle('Bold')
+        text_format.buffer().setEnabled(True)
+        text_format.buffer().setColor(QColor(255, 255, 255))
+
+        font_marker = TextRendererMarkerSymbolLayer(text_format)
+        vertex_marker_symbol.appendSymbolLayer(font_marker)
+
+        marker_line.setSubSymbol(vertex_marker_symbol)
+
+        if layer_type == QgsWkbTypes.LineGeometry:
+            symbol = QgsLineSymbol()
+        else:
+            symbol = QgsFillSymbol()
+
+        symbol.changeSymbolLayer(0, marker_line)
+
+        symbol.setClipFeaturesToExtent(False)
+
         super().__init__(symbol)
+
         self.selection = sorted(selection)
         self.feature_index = 0
+        self.vertex_number = vertex_number
 
     def filter(self, _=QgsFields()) -> str:  # pylint: disable=missing-function-docstring
         return f'$id in ({",".join([str(i) for i in self.selection])})'
