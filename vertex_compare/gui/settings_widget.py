@@ -69,6 +69,8 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
 
         self.button_reset_defaults.clicked.connect(self._reset_settings)
         self.check_center_on_selection.toggled.connect(self._center_on_selected_changed)
+        self.check_flash_feature.toggled.connect(self._flash_feature_changed)
+        self.check_flash_vertex.toggled.connect(self._flash_vertex_changed)
 
     def restore_settings(self):
         """
@@ -77,6 +79,8 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
         current_label_filter = SettingsRegistry.label_filtering()
         self.filtering_combo.setCurrentIndex(self.filtering_combo.findData(current_label_filter))
         self.check_center_on_selection.setChecked(SettingsRegistry.center_on_selected())
+        self.check_flash_feature.setChecked(SettingsRegistry.flash_feature())
+        self.check_flash_vertex.setChecked(SettingsRegistry.flash_vertex())
 
         self.point_symbol_button.setSymbol(SettingsRegistry.vertex_symbol())
         self.vertex_font_button.setTextFormat(SettingsRegistry.vertex_format())
@@ -97,6 +101,8 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
 
         SettingsRegistry.set_center_on_selected(False)
         self.check_center_on_selection.setChecked(False)
+        self.check_flash_feature.setChecked(False)
+        self.check_flash_vertex.setChecked(True)
 
         self.vertex_symbol_changed.emit()
         self.vertex_text_format_changed.emit()
@@ -146,3 +152,15 @@ class SettingsWidget(QgsPanelWidget, WIDGET):
         Triggered when the center on selection option is toggled
         """
         SettingsRegistry.set_center_on_selected(self.check_center_on_selection.isChecked())
+
+    def _flash_feature_changed(self):
+        """
+        Triggered when the flash feature option is toggled
+        """
+        SettingsRegistry.set_flash_feature(self.check_flash_feature.isChecked())
+
+    def _flash_vertex_changed(self):
+        """
+        Triggered when the flash vertex option is toggled
+        """
+        SettingsRegistry.set_flash_vertex(self.check_flash_vertex.isChecked())

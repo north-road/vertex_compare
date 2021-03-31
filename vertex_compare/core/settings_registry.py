@@ -86,6 +86,42 @@ class SettingsRegistry:
         settings.setValue('vertex_compare/center_on_selected', center, QgsSettings.Plugins)
 
     @staticmethod
+    def flash_feature() -> bool:
+        """
+        Returns the whether features should be flashed when active feature changes
+        """
+        settings = QgsSettings()
+        return settings.value('vertex_compare/flash_feature',
+                              False,
+                              bool, QgsSettings.Plugins)
+
+    @staticmethod
+    def set_flash_feature(flash: bool):
+        """
+        Sets whether features should be flashed when active feature changes
+        """
+        settings = QgsSettings()
+        settings.setValue('vertex_compare/flash_feature', flash, QgsSettings.Plugins)
+
+    @staticmethod
+    def flash_vertex() -> bool:
+        """
+        Returns the whether vertices should be flashed when active vertex changes
+        """
+        settings = QgsSettings()
+        return settings.value('vertex_compare/flash_vertex',
+                              True,
+                              bool, QgsSettings.Plugins)
+
+    @staticmethod
+    def set_flash_vertex(flash: bool):
+        """
+        Sets whether whether vertices should be flashed when active vertex changes
+        """
+        settings = QgsSettings()
+        settings.setValue('vertex_compare/flash_vertex', flash, QgsSettings.Plugins)
+
+    @staticmethod
     def default_vertex_symbol() -> QgsMarkerSymbol:
         """
         Returns the default marker symbol to use for vertices

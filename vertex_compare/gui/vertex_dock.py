@@ -155,7 +155,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
                 self.label_vertex_count.clear()
                 self.button_zoom.setEnabled(False)
 
-            if changed and feature is not None:
+            if changed and feature is not None and SettingsRegistry.flash_feature():
                 self.map_canvas.flashGeometries([feature.geometry()], self.layer.crs())
 
         else:
@@ -199,7 +199,8 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
             try:
                 bounds = ct.transformBoundingBox(feature.geometry().boundingBox())
                 self.map_canvas.zoomToFeatureExtent(bounds)
-                self.map_canvas.flashGeometries([feature.geometry()], self.layer.crs())
+                if SettingsRegistry.flash_feature():
+                    self.map_canvas.flashGeometries([feature.geometry()], self.layer.crs())
             except QgsCsException:
                 pass
 
@@ -221,8 +222,9 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
                     self.map_canvas.setCenter(QgsPointXY(map_point))
                     self.map_canvas.refresh()
 
-                geom = QgsGeometry(map_point)
-                self.map_canvas.flashGeometries([geom])
+                if SettingsRegistry.flash_vertex():
+                    geom = QgsGeometry(map_point)
+                    self.map_canvas.flashGeometries([geom])
 
         feature_id = None
         if self.vertex_model.feature is not None:
