@@ -51,6 +51,11 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
     ]
 
     def __init__(self, layer_type: QgsWkbTypes.GeometryType, selection: list, vertex_number=Optional[int]):
+        if layer_type == QgsWkbTypes.LineGeometry:
+            symbol = QgsLineSymbol()
+        else:
+            symbol = QgsFillSymbol()
+
         marker_line = QgsMarkerLineSymbolLayer()
         marker_line.setRotateMarker(False)
         marker_line.setPlacement(QgsMarkerLineSymbolLayer.Vertex)
@@ -62,7 +67,20 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         simple_marker.setStrokeStyle(Qt.NoPen)
         # not so nice, but required to allow us to dynamically change this color mid-way through rendering
         simple_marker.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, QgsProperty.fromValue(None))
+
+        if vertex_number is not None:
+            simple_marker.setDataDefinedProperty(QgsSymbolLayer.PropertyLayerEnabled, QgsProperty.fromExpression(f'@geometry_point_num = {vertex_number}'))
+
         vertex_marker_symbol.changeSymbolLayer(0, simple_marker)
+
+        marker_line.setSubSymbol(vertex_marker_symbol)
+        symbol.changeSymbolLayer(0, marker_line)
+
+        marker_line2 = QgsMarkerLineSymbolLayer()
+        marker_line2.setRotateMarker(False)
+        marker_line2.setPlacement(QgsMarkerLineSymbolLayer.Vertex)
+
+        font_marker_symbol = QgsMarkerSymbol()
 
         text_format = QgsTextFormat()
         text_format.setColor(QColor(255, 0, 0))
@@ -71,17 +89,12 @@ class VertexHighlighterRenderer(QgsSingleSymbolRenderer):
         text_format.buffer().setEnabled(True)
         text_format.buffer().setColor(QColor(255, 255, 255))
 
-        font_marker = TextRendererMarkerSymbolLayer(text_format)
-        vertex_marker_symbol.appendSymbolLayer(font_marker)
+        font_marker = TextRendererMarkerSymbolLayer(text_format, vertex_number)
 
-        marker_line.setSubSymbol(vertex_marker_symbol)
+        font_marker_symbol.changeSymbolLayer(0, font_marker)
+        marker_line2.setSubSymbol(font_marker_symbol)
 
-        if layer_type == QgsWkbTypes.LineGeometry:
-            symbol = QgsLineSymbol()
-        else:
-            symbol = QgsFillSymbol()
-
-        symbol.changeSymbolLayer(0, marker_line)
+        symbol.appendSymbolLayer(marker_line2)
 
         symbol.setClipFeaturesToExtent(False)
 

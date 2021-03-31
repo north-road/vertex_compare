@@ -13,6 +13,8 @@ __copyright__ = 'Copyright 2021, North Road'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from typing import Optional
+
 from qgis.PyQt.QtCore import (
     QPointF,
     QRectF
@@ -33,10 +35,11 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
     A marker symbol layer which uses QgsTextRenderer to draw text
     """
 
-    def __init__(self, text_format: QgsTextFormat):
+    def __init__(self, text_format: QgsTextFormat, target_vertex: Optional[int]):
         super().__init__()
         self.text_format = text_format
         self.vertex_id = 1
+        self.target_vertex = target_vertex
 
     def layerType(self) -> str:  # pylint: disable=missing-function-docstring
         return 'TextRenderer'
@@ -66,6 +69,10 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         if not context.renderContext().painter():
             return
 
+        if self.target_vertex is not None and self.target_vertex != self.vertex_id:
+            self.vertex_id +=1
+            return
+
         map_point = context.renderContext().mapToPixel().toMapPoint(point.x(), point.y())
         if not context.renderContext().mapExtent().contains(map_point):
             # don't render points out of view
@@ -81,7 +88,7 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         self.vertex_id += 1
 
     def clone(self):  # pylint: disable=missing-function-docstring
-        return TextRendererMarkerSymbolLayer(self.text_format)
+        return TextRendererMarkerSymbolLayer(self.text_format, self.target_vertex)
 
     def properties(self):  # pylint: disable=missing-function-docstring
         return {}

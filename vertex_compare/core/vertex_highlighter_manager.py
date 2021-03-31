@@ -65,8 +65,8 @@ class VertexHighlighterManager:
         """
         Forces a redraw of the current layer being highlighted
         """
-        if self.visible and self.layer is not None:
-            self.layer.triggerRepaint()
+        self._remove_current_generator()
+        self._reset_generator()
 
     def set_selected_vertex(self, feature_id: Optional[int], vertex_number: Optional[int]):
         """

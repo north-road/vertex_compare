@@ -61,7 +61,9 @@ class VertexHighlighterRendererGenerator(QgsFeatureRendererGenerator):
                 # labeling selected vertex only, and no selection => no renderer
                 return QgsNullSymbolRenderer()
             selection = {self.feature_id}
+            vertex_number = self.vertex_number
         else:
             selection = self.layer.selectedFeatureIds()
+            vertex_number = None
 
-        return VertexHighlighterRenderer(self.layer_type, selection, self.vertex_number)
+        return VertexHighlighterRenderer(self.layer_type, selection, vertex_number)
