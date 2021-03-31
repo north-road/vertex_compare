@@ -37,6 +37,8 @@ class VertexModel(QAbstractTableModel):
     A model for showing vertex information
     """
 
+    VERTEX_NUMBER_ROLE = Qt.UserRole + 1
+
     COLUMN_ID = 0
     COLUMN_X = 1
     COLUMN_Y = 2
@@ -108,6 +110,9 @@ class VertexModel(QAbstractTableModel):
                 return "{:.2f}".format(self.vertices[index.row()][1].z())
 
             return "{:.2f}".format(self.vertices[index.row()][1].m())
+
+        if role == VertexModel.VERTEX_NUMBER_ROLE:
+            return index.row() + 1
 
         return None
 

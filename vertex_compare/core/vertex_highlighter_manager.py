@@ -72,3 +72,8 @@ class VertexHighlighterManager:
         if self.visible and self.layer is not None:
             self.layer.triggerRepaint()
 
+    def set_selected_vertex(self, feature_id: Optional[int], vertex_number: Optional[int]):
+        """
+        Triggered when the selected vertex is changed
+        """
+

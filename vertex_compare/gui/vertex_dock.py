@@ -23,7 +23,8 @@ from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import (
     QWidget,
     QVBoxLayout,
-    QAction
+    QAction,
+    QAbstractItemView
 )
 from qgis.core import (
     QgsApplication,
@@ -53,6 +54,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
     A table for vertex lists
     """
     label_filter_changed = pyqtSignal()
+    selected_vertex_changed = pyqtSignal(int,object)
 
     def __init__(self, map_canvas: QgsMapCanvas, parent: QWidget = None):
         super().__init__(parent)
@@ -65,6 +67,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
 
         self.vertex_model = VertexModel()
         self.table_view.setModel(self.vertex_model)
+        self.table_view.setSelectionMode(QAbstractItemView.SingleSelection)
 
         self.feature_model = FeatureModel()
         self.feature_combo.setModel(self.feature_model)
@@ -82,6 +85,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         self.selection: List[int] = []
 
         self.button_zoom.clicked.connect(self._zoom_to_feature)
+        self.table_view.selectionModel().selectionChanged.connect(self._vertex_selection_changed)
 
     def set_selection(self, layer: QgsVectorLayer, selection: List[int]):
         """
@@ -146,6 +150,8 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
             self.label_part_count.clear()
             self.label_vertex_count.clear()
 
+        self._vertex_selection_changed()
+
     def _show_settings(self):
         """
         Shows the settings panel
@@ -179,12 +185,31 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
             except QgsCsException:
                 pass
 
+    def _vertex_selection_changed(self):
+        """
+        Triggered when the selected vertex is changed
+        """
+        selection = self.table_view.selectionModel().selectedIndexes()
+        vertex_number = None
+        if selection:
+            selected_index = self.vertex_model.index(self.table_view.selectionModel().selectedIndexes()[0].row(), 0)
+            if selected_index.isValid():
+                vertex_number = self.vertex_model.data(selected_index, VertexModel.VERTEX_NUMBER_ROLE)
+
+        feature_id = None
+        if self.vertex_model.feature is not None:
+            feature_id = self.vertex_model.feature.id()
+
+        self.selected_vertex_changed.emit(feature_id, vertex_number)
+
+
 
 class VertexDockWidget(QgsDockWidget):
     """
     A dock widget container for plugin GUI components
     """
     label_filter_changed = pyqtSignal()
+    selected_vertex_changed = pyqtSignal(int,object)
 
     def __init__(self, map_canvas: QgsMapCanvas, parent=None):
         super().__init__(parent)
@@ -208,6 +233,7 @@ class VertexDockWidget(QgsDockWidget):
         self.stack.setMainPanel(self.table_widget)
 
         self.table_widget.label_filter_changed.connect(self.label_filter_changed)
+        self.table_widget.selected_vertex_changed.connect(self.selected_vertex_changed)
 
     def set_selection(self, layer: QgsVectorLayer, selection: List[int]):
         """
