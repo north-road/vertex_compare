@@ -95,7 +95,7 @@ class VertexListWidget(QgsPanelWidget, WIDGET):
         self.table_view.doubleClicked.connect(self._table_double_click)
         self.button_zoom.setEnabled(False)
 
-    def set_selection(self, layer: QgsVectorLayer, selection: List[int]):
+    def set_selection(self, layer: Optional[QgsVectorLayer], selection: List[int]):
         """
         Sets the selection to show in the dock
         """

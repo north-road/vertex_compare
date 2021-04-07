@@ -49,7 +49,7 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
     def layerType(self) -> str:  # pylint: disable=missing-function-docstring
         return 'TextRenderer'
 
-    def hasDataDefinedProperties(self):
+    def hasDataDefinedProperties(self):  # pylint: disable=missing-function-docstring
         return True
 
     def set_uncommon_vertices(self, vertices: Dict):
@@ -71,7 +71,7 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
     def subSymbol(self):  # pylint: disable=missing-function-docstring
         return self.marker_symbol
 
-    def startFeatureRender(self, feature, context):
+    def startFeatureRender(self, feature, context):  # pylint: disable=missing-function-docstring
         self.vertex_id = 1
         self.current_feature_id = feature.id()
         self.current_part_number = None
@@ -79,7 +79,7 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
         if self.subSymbol():
             self.subSymbol().startFeatureRender(feature, context)
 
-    def stopFeatureRender(self, feature, context):
+    def stopFeatureRender(self, feature, context):  # pylint: disable=missing-function-docstring
         self.vertex_id = 1
         self.current_feature_id = None
         self.current_part_number = None
@@ -133,7 +133,7 @@ class TextRendererMarkerSymbolLayer(QgsMarkerSymbolLayer):
 
         if feature_id in self.geometry_part_count:
             part_counts = self.geometry_part_count[feature_id]
-            offset_for_part = sum(part_counts[:part_num-1])
+            offset_for_part = sum(part_counts[:part_num - 1])
         else:
             offset_for_part = 0
         current_vertex_id = self.vertex_id + offset_for_part

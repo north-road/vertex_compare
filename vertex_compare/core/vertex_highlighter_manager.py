@@ -17,7 +17,9 @@ from typing import Optional
 
 from qgis.PyQt import sip
 from qgis.core import (
-    QgsVectorLayer
+    QgsVectorLayer,
+    QgsProject,
+    QgsMapLayer
 )
 
 from vertex_compare.core.settings_registry import SettingsRegistry
@@ -38,10 +40,12 @@ class VertexHighlighterManager:
         self.current_vertex_number: Optional[int] = None
         self.topological = False
 
+        QgsProject.instance().layerWillBeRemoved[QgsMapLayer].connect(self._layer_removed)
+
     def __del__(self):
         self._remove_current_generator()
 
-    def set_layer(self, layer: QgsVectorLayer):
+    def set_layer(self, layer: Optional[QgsVectorLayer]):
         """
         Sets the active layer
         """
@@ -51,6 +55,13 @@ class VertexHighlighterManager:
         self._remove_current_generator()
         self.layer = layer
         self._reset_generator()
+
+    def _layer_removed(self, layer: QgsMapLayer):
+        """
+        Triggered when a map layer is about to be removed from the project
+        """
+        if layer == self.layer:
+            self.set_layer(None)
 
     def set_visible(self, visible: bool):
         """

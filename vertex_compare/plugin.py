@@ -178,6 +178,8 @@ class VertexComparePlugin(QObject):
         else:
             self.show_vertices_action.setChecked(True)
 
+        self.dock.set_selection(layer, layer.selectedFeatureIds() if layer is not None else [])
+
     def _selection_changed(self, layer: Optional[QgsVectorLayer], selection: List[int]):
         """
         Triggered when the watched layer's selection is changed
