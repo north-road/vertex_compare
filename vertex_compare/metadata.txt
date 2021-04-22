@@ -28,7 +28,7 @@ changelog=0.0.1 Initial release
 # Tags are comma separated with spaces allowed
 tags=python
 
-homepage=https://github.com/north-road/vertex_compare/issues
+homepage=https://north-road.github.io/vertex_compare
 category=Plugins
 icon=icon.png
 # experimental flag
