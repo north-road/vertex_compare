@@ -10,8 +10,6 @@
  ***************************************************************************/
 """
 
-from .plugin import VertexComparePlugin
-
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
@@ -21,4 +19,6 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgsInterface
     """
     #
+    from .plugin import VertexComparePlugin  # pylint: disable=import-outside-toplevel
+
     return VertexComparePlugin(iface)
