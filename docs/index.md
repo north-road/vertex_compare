@@ -10,3 +10,4 @@ aiding data cleansing and maintenance.
 
 The plugin is created by [North Road Consulting](http://north-road.com) on behalf of Natural Resources Canada.
 
+## Plugin Workflow
